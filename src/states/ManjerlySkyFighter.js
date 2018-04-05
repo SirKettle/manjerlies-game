@@ -1,8 +1,9 @@
 import R from 'ramda';
+import { CANVAS } from '../index';
 import Player from '../objects/Player';
 import Hostiles from '../objects/Hostiles';
 import ParallaxTile from '../objects/ParallaxTile';
-import { CANVAS } from '../index';
+import DebugText from '../objects/DebugText';
 
 require('../plugins/virtual-gamepad.js');
 
@@ -174,19 +175,6 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.__barEnergyMask = new Phaser.Rectangle(0, 0, 0, COCKPIT.BAR_HEIGHT);
 		this.__barEnergy.crop(this.__barEnergyMask);
 		
-		// Display console - debug
-
-		if (this.game.__DEBUG_MODE) {
-			this.__textDebug = this.game.add.group();
-			this.__textDebugPlayer = this.game.add.text(75, 70, '', textStyleDebug);
-			this.__textDebugHostiles = this.game.add.text(250, 70, '', textStyleDebug);
-			this.__textDebugMission = this.game.add.text(425, 70, '', textStyleDebug);
-			this.__textDebugControls = this.game.add.text(600, 70, '', textStyleDebug);
-			this.__textDebug.addMultiple([this.__textDebugControls, this.__textDebugPlayer, this.__textDebugMission, this.__textDebugHostiles]);
-			this.__textDebug.fixedToCamera = true;
-			this.__textDebug.alpha = 0.3;
-		}
-		
 		// Display console - user
 		this.__textDisplay = this.game.add.group();
 		this.__textConsole = this.game.add.text(CANVAS.WIDTH * 0.5 - COCKPIT.BAR_WIDTH * 0.5, CANVAS.HEIGHT - 30, '', { ...textStyleConsole, fill: '#4fa' });
@@ -225,6 +213,18 @@ class ManjerlySkyFighter extends Phaser.State {
 
 		// Reset the game state
 		this.initGameState();
+
+		// Display console - debug
+		this._debugText = new DebugText(
+			this.game,
+			this.__mission,
+			this._hostiles,
+			this._player,
+			this.__thrust,
+			this._joystick,
+			this._keys
+		);
+
 		R.times(() => { this.spawnGerm(); }, this.__mission.hostiles.initial);
 	}
 	
@@ -357,46 +357,8 @@ class ManjerlySkyFighter extends Phaser.State {
 		const directionsString = Object.keys(directionsMap)
 			.filter(key => directionsMap[key])
 			.join(' - ');
-		
-		if (this.game.__DEBUG_MODE) {
-			this.__textDebugPlayer.setText(
-`-- COORDS --
-x: ${ Math.floor(this._player.sprite.x)}, y: ${ Math.floor(this._player.sprite.y) }
-thrust: ${ Math.floor(this.__thrust) }
-speed: ${ Math.floor(this._player.sprite.body.speed) }
-angle: ${ this._player.sprite.body.angle.toFixed(4) }
-rotation: ${ this._player.sprite.body.rotation.toFixed(4) }
--- VITALS --
-energy: ${ Math.floor(this._player.energy * 100) }%
-health: ${ Math.floor(this._player.health * 100) }%
-		`);
 
-		this.__textDebugMission.setText(
-`--- MISSION ---
-score: ${this.game._global.score}
-targets: ${killCount}/${this.__mission.kills}
-time left: ${ timeLeft }
-		`);
-
-		this.__textDebugHostiles.setText(
-`-- HOSTILES --
-total: ${ this._hostiles.spawnedCount }
-killed: ${ killCount }
-alive: ${ this._hostiles.spriteGroup.length }
-		`);
-
-		this.__textDebugControls.setText(
-`-- CONTROLS --
-inUse: ${ inUse }
-directions: ${ directionsString }
-(Rectangular)
-x: ${ x }, y: ${ y }
-(Polar)
-distance: ${ distance }
-angle: ${ angle.toFixed(4) }
-rotation: ${ rotation.toFixed(4) }
-			`);
-		}
+		this._debugText.update(timeLeft);
 
 		this.__textMission.setText(`Destroy ${this.__mission.kills} hostiles before it’s too late!`);
 		this.__textMissionTime.setText(formatTime(timeLeft));
