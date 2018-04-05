@@ -1,5 +1,5 @@
 
-const types = ['hostile_germ', 'hostile_elliot', 'hostile_harrison', 'hostile_robin'];
+const HOSTILE_IMAGE_KEYS = ['hostile_germ', 'hostile_elliot', 'hostile_harrison', 'hostile_robin'];
 
 class Hostile {
 	constructor(game){
@@ -10,8 +10,8 @@ class Hostile {
 	spawn(x, y){
 		const size = Math.random() * 0.2 + 0.15;
 		this.size = size;
-		this.type = types[this.game.rnd.integerInRange(0, 3)];
-		this.sprite = this.game.add.sprite(x, y, this.type);
+		this.imageKey = HOSTILE_IMAGE_KEYS[this.game.rnd.integerInRange(0, HOSTILE_IMAGE_KEYS.length - 1)];
+		this.sprite = this.game.add.sprite(x, y, this.imageKey);
 		this.game.physics.arcade.enable(this.sprite);
 		this.sprite.anchor.setTo(0.5, 0.5);
 		this.sprite.scale.setTo(this.size, this.size);
