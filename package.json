@@ -1,7 +1,7 @@
 {
-  "name": "phaser-es6-boilerplate",
-  "version": "1.0.2",
-  "description": "Tiny flexible template for writing Phaser games in ES6/ES2015 with Babel.",
+  "name": "sky-fighter",
+  "version": "1.0.0",
+  "description": "A game built with PhaserJs inspired by a boy’s imaginary world",
   "main": "src/index.js",
   "scripts": {
     "start": "gulp",
@@ -9,9 +9,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/belohlavek/phaser-es6-boilerplate"
+    "url": "https://github.com/SirKettle/sky-fighter"
   },
-  "author": "Daniel Belohlavek",
+  "author": "Will Thirkettle",
   "license": "MIT",
   "devDependencies": {
     "babelify": "^6.1.3",
