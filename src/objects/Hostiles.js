@@ -1,33 +1,6 @@
 
 const types = ['hostile_germ', 'hostile_elliot', 'hostile_harrison', 'hostile_robin'];
 
-class Hostile {
-	constructor(game){
-		this.game = game;
-        this.sprite = null;
-	}
-
-	spawn(x, y){
-		const size = Math.random() * 0.2 + 0.15;
-		this.size = size;
-		this.type = types[this.game.rnd.integerInRange(0, 3)];
-		this.sprite = this.game.add.sprite(x, y, this.type);
-		this.game.physics.arcade.enable(this.sprite);
-		this.sprite.anchor.setTo(0.5, 0.5);
-		this.sprite.scale.setTo(this.size, this.size);
-		this.sprite.angle = Math.floor(Math.random() * 360);
-		this.sprite.body.immovable = false;
-		this.sprite.body.collideWorldBounds = true;
-		this.sprite.body.bounce.set(0.4);
-
-		this.game.physics.arcade.velocityFromRotation(
-			this.sprite.rotation,
-			this.game.rnd.integerInRange(200, 800),
-			this.sprite.body.velocity
-		);
-	}
-}
-
 class Hostiles {
 
 	constructor(game, args){
@@ -43,9 +16,24 @@ class Hostiles {
 			return;
 		}
 
-		const hostile = new Hostile(this.game);
-		hostile.spawn(x, y);
-		this.spriteGroup.add(hostile.sprite);
+		const size = Math.random() * 0.2 + 0.15;
+		const type = types[this.game.rnd.integerInRange(0, 3)];
+		const sprite = this.game.add.sprite(x, y, type);
+		this.game.physics.arcade.enable(sprite);
+		sprite.anchor.setTo(0.5, 0.5);
+		sprite.scale.setTo(size, size);
+		sprite.angle = Math.floor(Math.random() * 360);
+		sprite.body.immovable = false;
+		sprite.body.collideWorldBounds = true;
+		sprite.body.bounce.set(0.4);
+
+		this.game.physics.arcade.velocityFromRotation(
+			sprite.rotation,
+			this.game.rnd.integerInRange(200, 800),
+			sprite.body.velocity
+		);
+
+		this.spriteGroup.add(sprite);
 		this.spawnedCount += 1;
 	}
 

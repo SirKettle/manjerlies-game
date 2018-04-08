@@ -22,7 +22,7 @@ class Preload extends Phaser.State {
 		this.game.load.image('blood_splatter', 'assets/blood_splatter.png');
 		this.game.load.image('blood_splatter_green', 'assets/blood_splatter_green.png');
 		this.game.load.image('blood_splatter_yellow', 'assets/blood_splatter_yellow.png');
-		this.game.load.image('manjerly_fighter_ship', 'assets/manjerly_fighter_ship2.png');
+		this.game.load.image('manjerly_fighter_ship', 'assets/manjerly_fighter_ship.png');
 		this.game.load.image('turret', 'assets/manjerly_fighter_ship_turret.png');
 		this.game.load.image('laser', 'assets/laser.png');
 		this.game.load.image('bubble','assets/bubble.png');

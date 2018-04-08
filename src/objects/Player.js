@@ -41,7 +41,7 @@ class Player {
 	spawn(){
         // Add the sprite
         this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
-        this.sprite.scale.setTo(0.3, 0.3);
+        this.sprite.scale.setTo(0.6, 0.6);
         this.sprite.anchor.set(0.5);
         this.game.physics.arcade.enable(this.sprite);
         this.sprite.body.drag.set(100);

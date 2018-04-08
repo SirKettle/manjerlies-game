@@ -1,15 +1,12 @@
 import R from 'ramda';
 import Player from '../objects/Player';
+import PlayerMap from '../objects/PlayerMap';
 import Hostiles from '../objects/Hostiles';
+import Immovables from '../objects/Immovables';
 import ParallaxTile from '../objects/ParallaxTile';
 import { CANVAS } from '../index';
 
 require('../plugins/virtual-gamepad.js');
-
-export const WORLD = {
-	WIDTH: 3500,
-	HEIGHT: 2000
-};
 
 const DEFAULT_STATE = {
 	score: 0,
@@ -67,7 +64,7 @@ const formatTime = (ms) => {
 	return `${padNumber(mins)}:${padNumber(secs)}`;
 }
 
-const getRandomCoords = (maxX = WORLD.WIDTH, maxY = WORLD.HEIGHT) => {
+const getRandomCoords = (maxX, maxY) => {
 	return {
 		x: Math.round(Math.random() * maxX),
 		y: Math.round(Math.random() * maxY)
@@ -97,16 +94,48 @@ class ManjerlySkyFighter extends Phaser.State {
 		// Set mission targets
 		// TODO: this needs to be extended and randomly generated ot create levels
 		console.log('create mission!');
-		const maxHostiles = this.game.rnd.integerInRange(25, 50);
+		const maxHostiles = this.game.rnd.integerInRange(15, 20);
 		this.__mission = {
 			time: this.game.rnd.integerInRange(4, 9) * 10000,
 			kills: this.game.rnd.integerInRange(10, maxHostiles),
 			hostiles: {
-				initial: this.game.rnd.integerInRange(1, 20),
+				initial: this.game.rnd.integerInRange(1, 10),
 				max: maxHostiles,
 				spawnRate: 2 / 1
 			}
 		};
+
+		this.playerMapGrid = [
+			[1,1,0,0,0,0,1,1],
+			[1,1,0,0,0,0,1,1],
+			[1,1,0,0,0,0,1,1],
+			[1,1,1,0,0,1,1,1],
+			[0,0,0,0,0,0,0,0],
+			[1,1,0,0,0,0,1,1],
+			[1,1,0,0,0,0,1,1],
+			[1,0,0,0,0,0,0,],
+			[0,0,0,1,1,0,0,0],
+			[0,0,1,1,1,1,0,0],
+			[1,0,0,1,1,0,0,1],
+			[0,0,0,1,1,0,0,0]
+		];
+
+		const colCount = this.playerMapGrid[0].length;
+		const rowCount = this.playerMapGrid.length;
+
+		this._world = {
+			blocks: {
+				size: 500
+			}
+		};
+
+		this._world.blocks.columns = this.playerMapGrid[0].length;
+		this._world.blocks.rows = this.playerMapGrid.length;
+		this._world.width = this._world.blocks.columns * this._world.blocks.size;
+		this._world.height = this._world.blocks.rows * this._world.blocks.size;
+
+		// this.__mission.hostiles.initial = 0;
+		// this.__mission.hostiles.max = 1;
 
 		this.game._global.missionComplete = false;
 		this.game._global.score = 0;
@@ -118,20 +147,23 @@ class ManjerlySkyFighter extends Phaser.State {
         this.__timer.start();
 
 		// Game physics
-		this.game.world.setBounds(0, 0, WORLD.WIDTH, WORLD.HEIGHT);
+		this.game.world.setBounds(0, 0, this._world.width, this._world.height);
 		this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
 		// Add background
 		this.game.stage.backgroundColor = '#6f0100';
-		this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'bg');
+		// this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'bg');
 		this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'grid');
 		
 		this._parallax = [
 			new ParallaxTile(this.game, 'parallax_far', 0.05),
 			new ParallaxTile(this.game, 'parallax_mid', 0.15),
-			new ParallaxTile(this.game, 'parallax_near', 0.5),
+			// new ParallaxTile(this.game, 'parallax_near', 0.5),
 			new ParallaxTile(this.game, 'parallax_near', 1.5)
 		];
+
+		// Render the walls of the body
+		this.renderBoundaryBlocks();
 
 		// Add the player
 		this._player = new Player(this.game);
@@ -150,6 +182,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		
 		// Add some enemies
 		this._hostiles = new Hostiles(this.game, this.__mission.hostiles);
+
 		
 		this.__emitterBloodSplatter = this.game.add.emitter(0, 0, 1000);
 		this.__emitterBloodSplatter.makeParticles(['blood_splatter_yellow', 'blood_splatter_green']);
@@ -159,6 +192,16 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.__emitterBloodSplatter.maxParticleScale = 2;
 		this.__emitterBloodSplatter.minParticleScale = 0.5;
 		this.__emitterBloodSplatter.alpha = 0.25;
+		
+		// Camera to follow the player
+		this.game.camera.follow(this._player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+
+		// Bring last parallax bg in front of player
+		R.last(this._parallax).tileSprite.bringToTop();
+		this.game.world.bringToTop(this._immovables.spriteGroup);
+		this.game.world.bringToTop(this._immovables.spriteGroup);
+
+
 		
 		this.__cockpit = this.add.sprite(0,0, 'cockpit');
 		this.__cockpit.fixedToCamera = true;
@@ -216,16 +259,13 @@ class ManjerlySkyFighter extends Phaser.State {
 			joystick: this._joystick,
 			fireButton: this._fireButton
 		});
-		
-		// Camera to follow the player
-		this.game.camera.follow(this._player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-
-		// Bring last parallax bg in front of player
-		R.last(this._parallax).tileSprite.bringToTop();
 
 		// Reset the game state
 		this.initGameState();
 		R.times(() => { this.spawnGerm(); }, this.__mission.hostiles.initial);
+
+		// Add the player map
+		this.renderPlayerMap();
 	}
 	
 	initGameState() {
@@ -239,9 +279,51 @@ class ManjerlySkyFighter extends Phaser.State {
 			this._state[key] = DEFAULT_STATE[key];
 		});
 	}
+
+	renderPlayerMap() {
+		const ratioToScreenScale = 0.15;
+		this._playerMap = new PlayerMap(this.game, {
+			width: this.game.width * ratioToScreenScale,
+			height: this.game.width * 12 / 8 * ratioToScreenScale,
+			color: '#00ff33',
+			grid: this.playerMapGrid,
+			offset: {
+				x: 25,
+				y: 70
+			}
+		});
+	}
+
+	renderBoundaryBlocks() {
+		const colCount = this.playerMapGrid[0].length;
+		const rowCount = this.playerMapGrid.length;
+		const blockWidth = this.game.world.width / colCount;
+		const blockHeight = this.game.world.height / rowCount;
+		const blockPoints = R.flatten(
+			this.playerMapGrid.map((row, rowIndex) => {
+				return row.map((is, colIndex) => {
+					return {
+						is,
+						x: colIndex * blockWidth,
+						y: rowIndex * blockHeight
+					};
+				});
+			})
+		).filter(point => point.is === 1);
+
+		this._immovables = new Immovables(this.game, {
+			width: blockWidth,
+			height: blockHeight,
+			color: '#2f0100'
+		});
+
+		blockPoints.forEach(point => {
+			this._immovables.spawn(point.x, point.y);
+		});
+	}
 	
 	spawnGerm() {
-		const { x, y } = getRandomCoords();
+		const { x, y } = getRandomCoords(this._world.width, this._world.height);
 		this._hostiles.spawn(x, y);
 	}
 
@@ -267,6 +349,15 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.addScore(-10);
 	}
 
+	onActorImmovableImpact(actor, immovable) {
+		// Needs a callback for collision detection - do nothing
+	}
+
+	onLaserImmovableImpact(laser, immovable) {
+		this.emitBloodSplatterParticles(laser.body.center.x, laser.body.center.y);
+		laser.kill();	
+	}
+
 	killGerm(germ) {
 		// Animate death of germ
 		const killTweenDuration = 200;
@@ -289,8 +380,12 @@ class ManjerlySkyFighter extends Phaser.State {
 			this.fireLaser();
 		}
 
+		// Collision detection
 		this.game.physics.arcade.overlap(this.lasers, this._hostiles.spriteGroup, this.onLaserHitGerm.bind(this));
 		this.game.physics.arcade.collide(this._player.sprite, this._hostiles.spriteGroup, this.onPlayerGermImpact.bind(this));
+		this.game.physics.arcade.collide(this._player.sprite, this._immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
+		this.game.physics.arcade.overlap(this.lasers, this._immovables.spriteGroup, this.onLaserImmovableImpact.bind(this));
+		this.game.physics.arcade.collide(this._hostiles.spriteGroup, this._immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
 
 		this.updateDisplay();
 
@@ -302,6 +397,8 @@ class ManjerlySkyFighter extends Phaser.State {
 		this._parallax.forEach((parallax, index) => {
 			parallax.update(this._player.sprite.x, this._player.sprite.y);
 		});
+
+		this._playerMap.updatePlayer(this._player.sprite.x, this._player.sprite.y);
 	}
 
 	checkMission() {
