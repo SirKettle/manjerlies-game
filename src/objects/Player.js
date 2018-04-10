@@ -30,7 +30,7 @@ class Player {
     }
     
     addControls(controls){
-        this.keys = controls.keys;
+        this.keyboard = controls.keyboard;
         this.joystick = controls.joystick;
         this.fireButton = controls.fireButton;
 	}
@@ -100,8 +100,8 @@ class Player {
 			return;
 		}
 
-		if (this.keys.cursorUp.isDown) {
-			const timeThrusting = this.game.time.time - this.keys.cursorUp.timeDown;
+		if (this.keyboard.cursorUp.isDown) {
+			const timeThrusting = this.game.time.time - this.keyboard.cursorUp.timeDown;
 			this.thrust = R.clamp(0, this.maxThrust, timeThrusting * 0.1);
 			return;
 		}
@@ -124,11 +124,11 @@ class Player {
 			return;
 		}
 		// Check for thrust key button
-		if (this.keys.cursorUp.isDown) {
+		if (this.keyboard.cursorUp.isDown) {
 			const radAngle = (this.sprite.angle - 90) * Math.PI / 180;
 			this.sprite.body.acceleration.x = -(PLAYER.POWER * 100 * Math.sin(radAngle));
 			this.sprite.body.acceleration.y = PLAYER.POWER * 100 * Math.cos(radAngle);
-			const timeThrusting = this.game.time.time - this.keys.cursorUp.timeDown;
+			const timeThrusting = this.game.time.time - this.keyboard.cursorUp.timeDown;
 			return;
 		}
 
@@ -138,12 +138,12 @@ class Player {
 	}
 
 	updateAngle() {
-		if (this.keys.cursorLeft.isDown) {
+		if (this.keyboard.cursorLeft.isDown) {
 			this.sprite.angle = this.sprite.angle - 5;
 			this.sprite.lastAngle = this.sprite.angle;
 			return;
 		}
-		if (this.keys.cursorRight.isDown) {
+		if (this.keyboard.cursorRight.isDown) {
 			this.sprite.angle = this.sprite.angle + 5;
 			this.sprite.lastAngle = this.sprite.angle;
 			return;

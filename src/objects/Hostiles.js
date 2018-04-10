@@ -1,5 +1,5 @@
 
-const types = ['hostile_germ', 'hostile_elliot', 'hostile_harrison', 'hostile_robin'];
+const HOSTILE_IMAGE_KEYS = ['hostile_germ', 'hostile_elliot', 'hostile_harrison', 'hostile_robin'];
 
 class Hostiles {
 
@@ -17,8 +17,8 @@ class Hostiles {
 		}
 
 		const size = Math.random() * 0.2 + 0.15;
-		const type = types[this.game.rnd.integerInRange(0, 3)];
-		const sprite = this.game.add.sprite(x, y, type);
+		const imageKey = HOSTILE_IMAGE_KEYS[this.game.rnd.integerInRange(0, 3)];
+		const sprite = this.game.add.sprite(x, y, imageKey);
 		this.game.physics.arcade.enable(sprite);
 		sprite.anchor.setTo(0.5, 0.5);
 		sprite.scale.setTo(size, size);
