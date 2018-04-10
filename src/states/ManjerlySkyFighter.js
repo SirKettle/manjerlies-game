@@ -1,6 +1,8 @@
 import R from 'ramda';
 import Player from '../objects/Player';
 import PlayerMap from '../objects/PlayerMap';
+import PlayerRadar from '../objects/PlayerRadar';
+import PlayerGuage from '../objects/PlayerGuage';
 import Hostiles from '../objects/Hostiles';
 import Immovables from '../objects/Immovables';
 import ParallaxTile from '../objects/ParallaxTile';
@@ -16,7 +18,7 @@ const DEFAULT_STATE = {
 
 export const GAMEPAD = {
 	SIZE: 100,
-	PADDING: 110
+	PADDING: 120
 };
 
 const COCKPIT = {
@@ -194,7 +196,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.__emitterBloodSplatter.alpha = 0.25;
 		
 		// Camera to follow the player
-		this.game.camera.follow(this._player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+		this.game.camera.follow(this._player.cameraSprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
 		// Bring last parallax bg in front of player
 		R.last(this._parallax).tileSprite.bringToTop();
@@ -242,7 +244,7 @@ class ManjerlySkyFighter extends Phaser.State {
 
 		// Touch controls
 		this._gamepad = this.game.plugins.add(Phaser.Plugin.VirtualGamepad);
-		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad')
+		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad');
 		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1, 'gamepad');
 		
 		// Keyboard controls
@@ -266,10 +268,11 @@ class ManjerlySkyFighter extends Phaser.State {
 
 		// Add the player map
 		this.renderPlayerMap();
+		// Add the radar
+		this.renderRadar();
 	}
 	
 	initGameState() {
-		this.__thrust = 0;
 		this.__germsSpawnedCount = 0;
 		this._player.energy = 0;
 		this._player.health = 1;
@@ -290,6 +293,27 @@ class ManjerlySkyFighter extends Phaser.State {
 			offset: {
 				x: 25,
 				y: 70
+			}
+		});
+	}
+
+	renderRadar() {
+
+		this._playerGuage = new PlayerGuage(this.game, {
+			size: 100,
+			offset: {
+				x: this.game.width * 0.5 - 130,
+				y: this.game.height - 100
+			}
+		});
+
+		this._playerRadar = new PlayerRadar(this.game, {
+			size: 100,
+			color: '#00ff33',
+			range: 1000,
+			offset: {
+				x: this.game.width * 0.5,
+				y: this.game.height - 100
 			}
 		});
 	}
@@ -399,6 +423,25 @@ class ManjerlySkyFighter extends Phaser.State {
 		});
 
 		this._playerMap.updatePlayer(this._player.sprite.x, this._player.sprite.y);
+		this._playerRadar.update(this._player, this._hostiles);
+		this._playerGuage.update(this._player.thrust / this._player.maxThrust);
+
+
+		const distances = this._immovables.spriteGroup.children.map(immovable => {
+			return Phaser.Math.distance(this._player.sprite.x, this._player.sprite.y, immovable.x, immovable.y);
+		});
+		
+		
+		let wallclosestdistance;
+		distances.forEach(distance => {
+			if (wallclosestdistance === undefined) {
+				wallclosestdistance = distance;
+			}
+			if (wallclosestdistance > distance) {
+				wallclosestdistance = distance;
+			}
+		});
+		
 	}
 
 	checkMission() {
@@ -459,7 +502,7 @@ class ManjerlySkyFighter extends Phaser.State {
 			this.__textDebugPlayer.setText(
 `-- COORDS --
 x: ${ Math.floor(this._player.sprite.x)}, y: ${ Math.floor(this._player.sprite.y) }
-thrust: ${ Math.floor(this.__thrust) }
+thrust: ${ Math.floor(this._player.thrust) }
 speed: ${ Math.floor(this._player.sprite.body.speed) }
 angle: ${ this._player.sprite.body.angle.toFixed(4) }
 rotation: ${ this._player.sprite.body.rotation.toFixed(4) }

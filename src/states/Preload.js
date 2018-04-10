@@ -9,9 +9,13 @@ class Preload extends Phaser.State {
 		//this.game.load.atlas('myAtlas', 'assets/my-atlas.png', 'assets/my-atlas.json');
 		this.game.load.image('bg', 'assets/blood_bg.jpg');
 		this.game.load.image('parallax_far', 'assets/parallax_far.png');
+		this.game.load.image('radar_mask', 'assets/radar-mask.png');
+		this.game.load.image('radar_frame', 'assets/radar-frame.png');
+		this.game.load.image('guage', 'assets/guage.png');
+		this.game.load.image('guage_needle', 'assets/guage_needle.png');
 		this.game.load.image('parallax_mid', 'assets/parallax_mid.png');
 		this.game.load.image('parallax_near', 'assets/parallax_near.png');
-		this.game.load.image('cockpit', 'assets/sub-cockpit.png');
+		this.game.load.image('cockpit', 'assets/sub-cockpit2.png');
 		this.game.load.image('grid', 'assets/grid.png');
 		this.game.load.image('bar_health', 'assets/health_bar.png');
 		this.game.load.image('bar_energy', 'assets/energy_bar.png');

@@ -8,7 +8,13 @@ class ParallaxTile {
             x: -this.game.world.width * 0.5,
             y: -this.game.world.height * 0.5
         }
-        this.tileSprite = this.game.add.tileSprite(this.startingPosition.x, this.startingPosition.y, this.game.world.width * 2, this.game.world.height * 2, imageKey);
+        this.tileSprite = this.game.add.tileSprite(
+            this.startingPosition.x,
+            this.startingPosition.y,
+            this.game.world.width * 2 * Math.max(1, this.scale),
+            this.game.world.height * 2 * Math.max(1, this.scale),
+            imageKey
+        );
 	}
 
 	update(x, y){

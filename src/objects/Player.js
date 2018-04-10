@@ -26,6 +26,7 @@ class Player {
         this.energy = 0;
         this.health = 0;
         this.thrust = 0;
+        this.maxThrust = 150;
     }
     
     addControls(controls){
@@ -39,6 +40,12 @@ class Player {
 	}
 
 	spawn(){
+		// Add sprite for camera to follow
+		this.cameraSprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
+		this.cameraSprite.scale.setTo(0.6, 0.6);
+		this.cameraSprite.anchor.set(0.5);
+		this.cameraSprite.alpha = 0;
+
         // Add the sprite
         this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
         this.sprite.scale.setTo(0.6, 0.6);
@@ -48,7 +55,7 @@ class Player {
         this.sprite.body.maxVelocity.set(PLAYER.MAX_VELOCITY);
 		this.sprite.body.collideWorldBounds = true;
 		this.sprite.body.bounce.set(1);
-        this.sprite.lastAngle = -90;
+		this.sprite.lastAngle = -90;
         
 		// create particle emitters
 		this.emitterThrust = this.game.add.emitter(0, 0, 1000);
@@ -66,6 +73,11 @@ class Player {
 		this.updateHealth(delta * 0.025);
 		
 		this.emitParticleThrust(this.thrust);
+
+		// update the camera sprite's position
+		this.cameraSprite.x = this.sprite.x;
+		this.cameraSprite.y = this.sprite.y + 36;
+		this.cameraSprite.angle = this.sprite.angle;
 	}
 
 	updateEnergy(increase) {
@@ -84,13 +96,13 @@ class Player {
 
 	updateThrust() {
 		if (this.joystick.properties.inUse) {
-			this.thrust = R.clamp(0, 150, this.joystick.properties.distance);
+			this.thrust = R.clamp(0, this.maxThrust, this.joystick.properties.distance);
 			return;
 		}
 
 		if (this.keys.cursorUp.isDown) {
 			const timeThrusting = this.game.time.time - this.keys.cursorUp.timeDown;
-			this.thrust = R.clamp(0, 150, timeThrusting * 0.1);
+			this.thrust = R.clamp(0, this.maxThrust, timeThrusting * 0.1);
 			return;
 		}
 
