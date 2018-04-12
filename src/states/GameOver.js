@@ -1,9 +1,9 @@
 import { CANVAS } from '../index';
 
 const textStyle = {
-	font: '20px monospace', 
-	fill: '#ffffff', 
-	align: 'center', 
+	font: '20px monospace',
+	fill: '#ffffff',
+	align: 'center',
 	stroke: '#f00'
 };
 
@@ -38,7 +38,7 @@ class GameOver extends Phaser.State {
 	}
 
 	restartGame() {
-		this.game.state.start('ManjerlySkyFighter');
+		this.game.state.start('Main');
 	}
 
 }

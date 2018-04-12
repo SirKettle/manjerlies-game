@@ -1,38 +1,67 @@
-import { GAMEPAD } from './ManjerlySkyFighter';
+import { GAMEPAD } from './Main';
+
+export const assets = {
+  images: {
+    bg: 'assets/blood_bg.jpg',
+    parallax_far: 'assets/parallax_far.png',
+    radar_mask: 'assets/radar-mask.png',
+    radar_frame: 'assets/radar-frame.png',
+    proximity_alert: 'assets/proximity_alert.png',
+    guage: 'assets/guage.png',
+    guage_needle: 'assets/guage_needle.png',
+    parallax_mid: 'assets/parallax_mid.png',
+    parallax_near: 'assets/parallax_near.png',
+    cockpit: 'assets/sub-cockpit3.png',
+    grid: 'assets/grid.png',
+    bar_health: 'assets/health_bar.png',
+    bar_energy: 'assets/energy_bar.png',
+    hostile_germ: 'assets/hostile_germ.png',
+    hostile_harrison: 'assets/hostile_harrison.png',
+    hostile_elliot: 'assets/hostile_elliot.png',
+    hostile_robin: 'assets/hostile_robin.png',
+    blood_splatter: 'assets/blood_splatter.png',
+    blood_splatter_green: 'assets/blood_splatter_green.png',
+    blood_splatter_yellow: 'assets/blood_splatter_yellow.png',
+    manjerly_fighter_ship: 'assets/manjerly_fighter_ship.png',
+    turret: 'assets/manjerly_fighter_ship_turret.png',
+    laser: 'assets/laser.png',
+    bubble: 'assets/bubble.png'
+  },
+  spritesheets: {
+    gamepad: {
+      src: 'assets/gamepad_spritesheet2.png',
+      width: GAMEPAD.SIZE,
+      height: GAMEPAD.SIZE
+    }
+  },
+  audio: {
+		// TODO: Add audio
+		// myAudio: 'assets/my-audio.wav'
+  }
+}
 
 class Preload extends Phaser.State {
 
 	preload() {
+
+    Object.keys(assets.images)
+      .forEach(key => {
+        this.game.load.image(key, assets.images[key]);
+      });
+
+    Object.keys(assets.spritesheets)
+      .forEach(key => {
+        const { src, width, height } = assets.spritesheets[key];
+        this.game.load.spritesheet(key, src, width, height);
+      });
+
+    Object.keys(assets.audio)
+      .forEach(key => {
+        this.game.load.audio(key, assets.audio[key]);
+      });
+
 		// TODO: Add audio
-		//this.game.load.image('myImage', 'assets/my-image.png');
-		//this.game.load.audio('myAudio', 'assets/my-audio.wav');
-		//this.game.load.atlas('myAtlas', 'assets/my-atlas.png', 'assets/my-atlas.json');
-		this.game.load.image('bg', 'assets/blood_bg.jpg');
-		this.game.load.image('parallax_far', 'assets/parallax_far.png');
-		this.game.load.image('radar_mask', 'assets/radar-mask.png');
-		this.game.load.image('radar_frame', 'assets/radar-frame.png');
-		this.game.load.image('proximity_alert', 'assets/proximity_alert.png');
-		this.game.load.image('guage', 'assets/guage.png');
-		this.game.load.image('guage_needle', 'assets/guage_needle.png');
-		this.game.load.image('parallax_mid', 'assets/parallax_mid.png');
-		this.game.load.image('parallax_near', 'assets/parallax_near.png');
-		this.game.load.image('cockpit', 'assets/sub-cockpit3.png');
-		this.game.load.image('grid', 'assets/grid.png');
-		this.game.load.image('bar_health', 'assets/health_bar.png');
-		this.game.load.image('bar_energy', 'assets/energy_bar.png');
-		this.game.load.image('hostile_germ', 'assets/hostile_germ.png');
-		this.game.load.image('hostile_harrison', 'assets/hostile_harrison.png');
-		this.game.load.image('hostile_elliot', 'assets/hostile_elliot.png');
-		this.game.load.image('hostile_robin', 'assets/hostile_robin.png');
-		this.game.load.image('blood_splatter', 'assets/blood_splatter.png');
-		this.game.load.image('blood_splatter_green', 'assets/blood_splatter_green.png');
-		this.game.load.image('blood_splatter_yellow', 'assets/blood_splatter_yellow.png');
-		this.game.load.image('manjerly_fighter_ship', 'assets/manjerly_fighter_ship.png');
-		this.game.load.image('turret', 'assets/manjerly_fighter_ship_turret.png');
-		this.game.load.image('laser', 'assets/laser.png');
-		this.game.load.image('bubble','assets/bubble.png');
-		this.game.load.spritesheet('gamepad', 'assets/gamepad_spritesheet2.png', GAMEPAD.SIZE, GAMEPAD.SIZE);
-		this.game.load.spritesheet('button', 'assets/bo/great_button.png', 420, 70);
+		// this.game.load.audio('myAudio', 'assets/my-audio.wav');
 	}
 
 	create() {

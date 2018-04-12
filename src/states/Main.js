@@ -47,7 +47,7 @@ const doPerSecondProbably = (func, delta, callsPerSecondCount = 1) => {
 	}
 }
 
-class ManjerlySkyFighter extends Phaser.State {
+class Main extends Phaser.State {
 
 	constructor() {
 		super();
@@ -365,4 +365,4 @@ class ManjerlySkyFighter extends Phaser.State {
 
 }
 
-export default ManjerlySkyFighter;
+export default Main;
