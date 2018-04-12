@@ -16,12 +16,11 @@ class PlayerRadar {
 
   renderBg() {
     const graphic = new Phaser.Graphics(this.game)
-      .beginFill(Phaser.Color.hexToRGB(this.color), 1)
+      .beginFill(Phaser.Color.hexToRGB('#00ad23'), 1)
       .drawRect(0, 0, this.size, this.size);
     const texture = graphic.generateTexture();
     this.bgSprite = this.game.add.sprite(this.offset.x, this.offset.y, texture);
     this.bgSprite.fixedToCamera = true;
-    this.bgSprite.alpha = 0.7;
     this.bgSprite.anchor.set(0.5);
   }
 

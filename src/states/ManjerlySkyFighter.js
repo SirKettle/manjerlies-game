@@ -1,9 +1,6 @@
 import R from 'ramda';
 import { CANVAS } from '../index';
 import Player from '../objects/Player';
-import PlayerMap from '../objects/PlayerMap';
-import PlayerRadar from '../objects/PlayerRadar';
-import PlayerGuage from '../objects/PlayerGuage';
 import Hostiles from '../objects/Hostiles';
 import Immovables from '../objects/Immovables';
 import ParallaxTile from '../objects/ParallaxTile';
@@ -62,7 +59,7 @@ class ManjerlySkyFighter extends Phaser.State {
 	preload() {
 		this.game.time.advancedTiming = true;
 	}
-	
+
 	create() {
 		// Set mission targets
 		// TODO: this needs to be extended and randomly generated ot create levels
@@ -85,7 +82,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		// Add the mission timer
 		this.__timer = this.game.time.create();
 		this.__timerEvent = this.__timer.add(this.__mission.time, this.onTimeUp, this);
-        this.__timer.start();
+    this.__timer.start();
 
 		this.game._global.missionComplete = false;
 		this.game._global.score = 0;
@@ -95,12 +92,12 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.setWorld(this.__mission.grid);
 		this.game.world.setBounds(0, 0, this._world.width, this._world.height);
 		this.game.physics.startSystem(Phaser.Physics.ARCADE);
-		
+
 		// Touch controls
 		this._gamepad = this.game.plugins.add(Phaser.Plugin.VirtualGamepad);
 		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad');
-		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1, 'gamepad');
-		
+		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - 70, CANVAS.HEIGHT - 90, 0.5, 'gamepad');
+
 		// Keyboard controls
 		this.keyboard = {
 			cursorUp: this.game.input.keyboard.addKey(Phaser.Keyboard.UP),
@@ -131,19 +128,19 @@ class ManjerlySkyFighter extends Phaser.State {
 			fireButton: this._fireButton
 		});
 		this._player.spawn();
-		
+
 		// TODO: Should belong in Player.js
 		// Add some lasers for the player
-        this.lasers = this.game.add.group();
-        this.lasers.enableBody = true;
-        this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
-        this.lasers.createMultiple(20, 'laser');
-        this.lasers.setAll('scale.x', 0.5);
-        this.lasers.setAll('scale.y', 0.5);
-        this.lasers.setAll('anchor.x', 0.5);
-        this.lasers.setAll('anchor.y', 0.5);
+    this.lasers = this.game.add.group();
+    this.lasers.enableBody = true;
+    this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
+    this.lasers.createMultiple(20, 'laser');
+    this.lasers.setAll('scale.x', 0.5);
+    this.lasers.setAll('scale.y', 0.5);
+    this.lasers.setAll('anchor.x', 0.5);
+    this.lasers.setAll('anchor.y', 0.5);
 		this.laserTime = 0;
-		
+
 		// Add some enemies
 		this._hostiles = new Hostiles(this.game, this.__mission.hostiles);
 
@@ -155,7 +152,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.__emitterBloodSplatter.maxParticleScale = 2;
 		this.__emitterBloodSplatter.minParticleScale = 0.5;
 		this.__emitterBloodSplatter.alpha = 0.25;
-		
+
 		// Camera to follow the player
 		this.game.camera.follow(this._player.cameraSprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
@@ -181,15 +178,9 @@ class ManjerlySkyFighter extends Phaser.State {
 
 		R.times(() => { this.spawnGerm(); }, this.__mission.hostiles.initial);
 
-		// TODO: Should belong in Cockpit.js
-		// Add the player map
-		this.renderPlayerMap();
-		// Add the radar
-		this.renderRadar();
-
-
 		this._joystick.bringToTop();
 		this._joystick._padSprite.bringToTop();
+		this._fireButton.bringToTop();
 	}
 
 	setWorld(grid) {
@@ -203,41 +194,6 @@ class ManjerlySkyFighter extends Phaser.State {
 		this._world.blocks.rows = grid.length;
 		this._world.width = this._world.blocks.columns * this._world.blocks.size;
 		this._world.height = this._world.blocks.rows * this._world.blocks.size;
-	}
-	
-	renderPlayerMap() {
-		const ratioToScreenScale = 0.15;
-		this._playerMap = new PlayerMap(this.game, {
-			width: this.game.width * ratioToScreenScale,
-			height: this.game.width * 12 / 8 * ratioToScreenScale,
-			color: '#00ff33',
-			grid: this.__mission.grid,
-			offset: {
-				x: 25,
-				y: 70
-			}
-		});
-	}
-
-	renderRadar() {
-
-		this._playerGuage = new PlayerGuage(this.game, {
-			size: 100,
-			offset: {
-				x: this.game.width * 0.5 - 130,
-				y: this.game.height - 100
-			}
-		});
-
-		this._playerRadar = new PlayerRadar(this.game, {
-			size: 100,
-			color: '#00ff33',
-			range: 1000,
-			offset: {
-				x: this.game.width * 0.5,
-				y: this.game.height - 100
-			}
-		});
 	}
 
 	renderBoundaryBlocks() {
@@ -267,7 +223,7 @@ class ManjerlySkyFighter extends Phaser.State {
 			this._immovables.spawn(point.x, point.y);
 		});
 	}
-	
+
 	spawnGerm() {
 		const { x, y } = getRandomCoords(this._world.width, this._world.height);
 		this._hostiles.spawn(x, y);
@@ -279,7 +235,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		this.__emitterBloodSplatter.y = y;
 		this.__emitterBloodSplatter.flow(200, 25, 1, 3);
 	}
-	
+
 	onLaserHitGerm(laser, germ) {
 		this.emitBloodSplatterParticles(germ.body.center.x, germ.body.center.y);
 		laser.kill();
@@ -298,7 +254,7 @@ class ManjerlySkyFighter extends Phaser.State {
 
 	onLaserImmovableImpact(laser, immovable) {
 		this.emitBloodSplatterParticles(laser.body.center.x, laser.body.center.y);
-		laser.kill();	
+		laser.kill();
 	}
 
 	// TODO: Belong in Hostile.js
@@ -314,13 +270,13 @@ class ManjerlySkyFighter extends Phaser.State {
 		killTween.start();
 		this.addScore(20);
 	}
-	
+
 	update() {
 		const delta = this.game.time.physicsElapsed;
 		const timeLeft = this.__timerEvent.delay - this.__timer.ms;
 
 		this._player.updatePlayer(delta);
-		
+
 		if (this.keyboard.spaceBar.isDown || this._fireButton.isDown) {
 			this.fireLaser();
 		}
@@ -347,16 +303,11 @@ class ManjerlySkyFighter extends Phaser.State {
 			parallax.update(this._player.sprite.x, this._player.sprite.y);
 		});
 
-		this._playerMap.updatePlayer(this._player.sprite.x, this._player.sprite.y);
-		this._playerRadar.update(this._player, this._hostiles);
-		this._playerGuage.update(this._player.thrust / this._player.maxThrust);
-
-
 		const distances = this._immovables.spriteGroup.children.map(immovable => {
 			return Phaser.Math.distance(this._player.sprite.x, this._player.sprite.y, immovable.x, immovable.y);
 		});
-		
-		
+
+
 		let wallclosestdistance;
 		distances.forEach(distance => {
 			if (wallclosestdistance === undefined) {
@@ -366,7 +317,7 @@ class ManjerlySkyFighter extends Phaser.State {
 				wallclosestdistance = distance;
 			}
 		});
-		
+
 		if (wallclosestdistance < 200) {
 			this.showRedLight();
 		}
@@ -386,7 +337,7 @@ class ManjerlySkyFighter extends Phaser.State {
 			this.missionComplete();
 		}
 	}
-	
+
 	// TODO: Should belong in Player.js
 	fireLaser() {
 		if (this._player.energy < ENERGY_COST.LASER ||
@@ -400,7 +351,7 @@ class ManjerlySkyFighter extends Phaser.State {
 
 		if (this.laser) {
 			this.laser.reset(
-				this._player.sprite.centerX, 
+				this._player.sprite.centerX,
 				this._player.sprite.centerY
 			);
 			this.laser.lifespan = 2000;
@@ -414,7 +365,7 @@ class ManjerlySkyFighter extends Phaser.State {
 			this._player.updateEnergy(-ENERGY_COST.LASER);
 		}
 	}
-	
+
 	restartGame() {
 		this.initGameState();
 		this.game.state.restart();

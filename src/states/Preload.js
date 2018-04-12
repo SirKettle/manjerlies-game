@@ -15,7 +15,7 @@ class Preload extends Phaser.State {
 		this.game.load.image('guage_needle', 'assets/guage_needle.png');
 		this.game.load.image('parallax_mid', 'assets/parallax_mid.png');
 		this.game.load.image('parallax_near', 'assets/parallax_near.png');
-		this.game.load.image('cockpit', 'assets/sub-cockpit2.png');
+		this.game.load.image('cockpit', 'assets/sub-cockpit3.png');
 		this.game.load.image('grid', 'assets/grid.png');
 		this.game.load.image('bar_health', 'assets/health_bar.png');
 		this.game.load.image('bar_energy', 'assets/energy_bar.png');
@@ -30,7 +30,7 @@ class Preload extends Phaser.State {
 		this.game.load.image('turret', 'assets/manjerly_fighter_ship_turret.png');
 		this.game.load.image('laser', 'assets/laser.png');
 		this.game.load.image('bubble','assets/bubble.png');
-		this.game.load.spritesheet('gamepad', 'assets/gamepad_spritesheet.png', GAMEPAD.SIZE, GAMEPAD.SIZE);
+		this.game.load.spritesheet('gamepad', 'assets/gamepad_spritesheet2.png', GAMEPAD.SIZE, GAMEPAD.SIZE);
 		this.game.load.spritesheet('button', 'assets/bo/great_button.png', 420, 70);
 	}
 
