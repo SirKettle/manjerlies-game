@@ -27,7 +27,11 @@ class Player {
     this.energy = 0;
     this.health = 1;
     this.thrust = 0;
-		this.maxThrust = 150;
+    this.maxThrust = 150;
+    this.cameraOffset = {
+      x: 0,
+      y: 36
+    };
 
     this.keyboard = args.keyboard;
     this.joystick = args.joystick;
@@ -74,8 +78,8 @@ class Player {
 		this.emitParticleThrust(this.thrust);
 
 		// update the camera sprite's position
-		this.cameraSprite.x = this.sprite.x;
-		this.cameraSprite.y = this.sprite.y + 36;
+		this.cameraSprite.x = this.sprite.x + this.cameraOffset.x;
+		this.cameraSprite.y = this.sprite.y + this.cameraOffset.y;
 		this.cameraSprite.angle = this.sprite.angle;
 	}
 

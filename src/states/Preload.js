@@ -11,6 +11,7 @@ class Preload extends Phaser.State {
 		this.game.load.image('parallax_far', 'assets/parallax_far.png');
 		this.game.load.image('radar_mask', 'assets/radar-mask.png');
 		this.game.load.image('radar_frame', 'assets/radar-frame.png');
+		this.game.load.image('proximity_alert', 'assets/proximity_alert.png');
 		this.game.load.image('guage', 'assets/guage.png');
 		this.game.load.image('guage_needle', 'assets/guage_needle.png');
 		this.game.load.image('parallax_mid', 'assets/parallax_mid.png');

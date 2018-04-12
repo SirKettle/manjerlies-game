@@ -164,7 +164,8 @@ class ManjerlySkyFighter extends Phaser.State {
 		this._cockpit = new Cockpit(this.game, {
 			player: this._player,
 			hostiles: this._hostiles,
-			mission: this.__mission
+      mission: this.__mission,
+      immovables: this._immovables
 		});
 
 		// Display console - debug
@@ -302,25 +303,6 @@ class ManjerlySkyFighter extends Phaser.State {
 		this._parallax.forEach((parallax, index) => {
 			parallax.update(this._player.sprite.x, this._player.sprite.y);
 		});
-
-		const distances = this._immovables.spriteGroup.children.map(immovable => {
-			return Phaser.Math.distance(this._player.sprite.x, this._player.sprite.y, immovable.x, immovable.y);
-		});
-
-
-		let wallclosestdistance;
-		distances.forEach(distance => {
-			if (wallclosestdistance === undefined) {
-				wallclosestdistance = distance;
-			}
-			if (wallclosestdistance > distance) {
-				wallclosestdistance = distance;
-			}
-		});
-
-		if (wallclosestdistance < 200) {
-			this.showRedLight();
-		}
 	}
 
 	showRedLight() {

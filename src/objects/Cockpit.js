@@ -1,3 +1,4 @@
+import R from 'ramda';
 import { CANVAS } from '../index';
 import PlayerMap from '../objects/PlayerMap';
 import PlayerRadar from '../objects/PlayerRadar';
@@ -42,11 +43,22 @@ class Cockpit {
     this.game = game;
     this.player = args.player;
     this.hostiles = args.hostiles;
+    this.immovables = args.immovables;
     this.mission = args.mission;
 
-    this.cockpitSprite = this.game.add.sprite(0,0, 'cockpit');
+    this.proximityAlertConfig = {
+      range: 500,
+      minAlpha: 0.2
+    };
+
+    this.cockpitSprite = this.game.add.sprite(0, 0, 'cockpit');
     this.cockpitSprite.fixedToCamera = true;
     this.cockpitSprite.scale.setTo(0.5, 0.5);
+    this.proximityAlertSprite = this.game.add.sprite(CANVAS.WIDTH * 0.5, CANVAS.HEIGHT * 0.5 - this.player.cameraOffset.y, 'proximity_alert');
+    this.proximityAlertSprite.fixedToCamera = true;
+    this.proximityAlertSprite.scale.setTo(0.5);
+    this.proximityAlertSprite.anchor.setTo(0.5);
+    this.proximityAlertSprite.alpha = 0.2;
     this.barHealthSprite = this.game.add.sprite(CANVAS.WIDTH * 0.5 + 75, CANVAS.HEIGHT - 70, 'bar_health');
     this.barHealthSprite.alpha = 0.9;
     this.barHealthSprite.fixedToCamera = true;
@@ -123,8 +135,27 @@ class Cockpit {
 
 		this.playerMap.updatePlayer(this.player.sprite.x, this.player.sprite.y);
 		this.radar.update(this.player, this.hostiles);
-		this.thrustGuage.update(this.player.thrust / this.player.maxThrust);
-	}
+    this.thrustGuage.update(this.player.thrust / this.player.maxThrust);
+
+    this.updateProximityAlert();
+  }
+
+  updateProximityAlert() {
+		const distancesFromImmovables = this.immovables.spriteGroup.children.map(immovable => {
+			return Phaser.Math.distance(this.player.sprite.centerX, this.player.sprite.centerY, immovable.centerX, immovable.centerY);
+    });
+
+    const closestImmovableDistance = R.reduce((acc, val) => {
+      return val < acc ? val : acc;
+    }, Infinity, distancesFromImmovables);
+
+		if (closestImmovableDistance < this.proximityAlertConfig.range) {
+      this.proximityAlertSprite.alpha = (this.proximityAlertConfig.range - closestImmovableDistance) / this.proximityAlertConfig.range + this.proximityAlertConfig.minAlpha * 2;
+      return;
+    }
+
+    this.proximityAlertSprite.alpha = this.proximityAlertConfig.minAlpha;
+  }
 
 }
 
