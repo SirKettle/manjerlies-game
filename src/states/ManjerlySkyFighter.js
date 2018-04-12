@@ -96,7 +96,7 @@ class ManjerlySkyFighter extends Phaser.State {
 		// Touch controls
 		this._gamepad = this.game.plugins.add(Phaser.Plugin.VirtualGamepad);
 		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad');
-		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - 70, CANVAS.HEIGHT - 90, 0.5, 'gamepad');
+		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - 75, CANVAS.HEIGHT - 70, 1, 'gamepad');
 
 		// Keyboard controls
 		this.keyboard = {
