@@ -35,7 +35,6 @@ class Preload extends Phaser.State {
 	}
 
 	create() {
-		// this.game.state.start('ManjerlySkyFighter');
 		this.game.state.start('GameOver');
 	}
 

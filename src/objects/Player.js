@@ -20,58 +20,57 @@ export const PLAYER = {
 };
 
 class Player {
-	constructor(game){
+
+	constructor(game, args) {
 		this.game = game;
-        this.sprite = null;
-        this.energy = 0;
-        this.health = 0;
-        this.thrust = 0;
-        this.maxThrust = 150;
-    }
-    
-    addControls(controls){
-        this.keyboard = controls.keyboard;
-        this.joystick = controls.joystick;
-        this.fireButton = controls.fireButton;
-	}
-	
+    this.sprite = null;
+    this.energy = 0;
+    this.health = 1;
+    this.thrust = 0;
+		this.maxThrust = 150;
+
+    this.keyboard = args.keyboard;
+    this.joystick = args.joystick;
+    this.fireButton = args.fireButton;
+  }
+
 	fireLaser() {
 		console.log('move turret on player');
 	}
 
-	spawn(){
+	spawn() {
 		// Add sprite for camera to follow
 		this.cameraSprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
 		this.cameraSprite.scale.setTo(0.6, 0.6);
 		this.cameraSprite.anchor.set(0.5);
 		this.cameraSprite.alpha = 0;
 
-        // Add the sprite
-        this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
-        this.sprite.scale.setTo(0.6, 0.6);
-        this.sprite.anchor.set(0.5);
-        this.game.physics.arcade.enable(this.sprite);
-        this.sprite.body.drag.set(100);
-        this.sprite.body.maxVelocity.set(PLAYER.MAX_VELOCITY);
+    // Add the sprite
+    this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'manjerly_fighter_ship');
+    this.sprite.scale.setTo(0.6, 0.6);
+    this.sprite.anchor.set(0.5);
+    this.game.physics.arcade.enable(this.sprite);
+    this.sprite.body.drag.set(100);
+    this.sprite.body.maxVelocity.set(PLAYER.MAX_VELOCITY);
 		this.sprite.body.collideWorldBounds = true;
 		this.sprite.body.bounce.set(1);
 		this.sprite.lastAngle = -90;
-        
+
 		// create particle emitters
 		this.emitterThrust = this.game.add.emitter(0, 0, 1000);
 		this.emitterThrust.makeParticles('bubble');
 		this.emitterThrust.lifespan = 500;
 		this.emitterThrust.maxParticleSpeed = new Phaser.Point(50, 50);
 		this.emitterThrust.minParticleSpeed = new Phaser.Point(-50, -50);
-    }
-    
+  }
+
 	updatePlayer(delta) {
 		this.updateAngle();
 		this.updateAcceleration(delta);
 		this.updateThrust(delta);
 		this.updateEnergy(delta * 0.1);
 		this.updateHealth(delta * 0.025);
-		
+
 		this.emitParticleThrust(this.thrust);
 
 		// update the camera sprite's position
@@ -87,9 +86,6 @@ class Player {
 	updateHealth(increase) {
 		this.health = R.clamp(0, PLAYER.MAX_HEALTH, this.health + increase);
 		if (this.health === 0) {
-            // this.gameOver('Nooo - watch those hostiles!');
-            // alert('Player dies');
-            // this.game.state.restart();
 			this.game.state.start('GameOver');
 		}
 	}
@@ -116,7 +112,7 @@ class Player {
 			this.sprite.body.acceleration.y = 0;
 			return;
 		}
-		
+
 		// Read joystick data to set ship's acceleration
 		if (this.joystick.properties.inUse) {
 			this.sprite.body.acceleration.x = PLAYER.POWER * this.joystick.properties.x;
@@ -142,18 +138,19 @@ class Player {
 			this.sprite.angle = this.sprite.angle - 5;
 			this.sprite.lastAngle = this.sprite.angle;
 			return;
-		}
+    }
+
 		if (this.keyboard.cursorRight.isDown) {
 			this.sprite.angle = this.sprite.angle + 5;
 			this.sprite.lastAngle = this.sprite.angle;
 			return;
 		}
-        // Read joystick data to set ship's angle
-        if (this.joystick.properties.inUse) {
-            this.sprite.angle = this.joystick.properties.angle;
-			this.sprite.lastAngle = this.sprite.angle;
-			return;
-        }
+    // Read joystick data to set ship's angle
+    if (this.joystick.properties.inUse) {
+      this.sprite.angle = this.joystick.properties.angle;
+      this.sprite.lastAngle = this.sprite.angle;
+      return;
+    }
 		this.sprite.angle = this.sprite.lastAngle;
 	}
 

@@ -1,58 +1,57 @@
 
 const textStyleDebug = {
-	font: '13px monospace', 
-	fill: '#fff', 
-	align: 'left', 
+	font: '13px monospace',
+	fill: '#fff',
+	align: 'left',
 	stroke: '#000000'
 };
 
 class DebugText {
 	constructor(game, args){
-        this.game = game;
+    this.game = game;
 		if (!this.game.__DEBUG_MODE) {
-            return;
-        }
-
-        this.mission = args.mission;
-        this.hostiles = args.hostiles;
-        this.player = args.player;
-        this.joystick = args.joystick;
-        this.keyboard = args.keyboard;
-
-        this.textDebug = this.game.add.group();
-        this.textDebugPlayer = this.game.add.text(75, 70, '', textStyleDebug);
-        this.textDebugHostiles = this.game.add.text(250, 70, '', textStyleDebug);
-        this.textDebugMission = this.game.add.text(425, 70, '', textStyleDebug);
-        this.textDebugControls = this.game.add.text(600, 70, '', textStyleDebug);
-        this.textDebug.addMultiple([this.textDebugControls, this.textDebugPlayer, this.textDebugMission, this.textDebugHostiles]);
-        this.textDebug.fixedToCamera = true;
-        this.textDebug.alpha = 0.3;
-
+      return;
     }
 
-    update(timeLeft) {
-		if (!this.game.__DEBUG_MODE) {
-            return;
-        }
-		const {
-			up, down, left, right,
-			x, y, distance, angle,
-			rotation, inUse
-        } = this.joystick.properties;
-        
-        const killCount = this.hostiles.spawnedCount - this.hostiles.spriteGroup.length;
+    this.mission = args.mission;
+    this.hostiles = args.hostiles;
+    this.player = args.player;
+    this.joystick = args.joystick;
+    this.keyboard = args.keyboard;
 
-		const directionsMap = {
-			dU: up, dD: down, dL: left, dR: right,
-			aU: this.keyboard.cursorUp.isDown,
-			aL: this.keyboard.cursorLeft.isDown,
-			aR: this.keyboard.cursorRight.isDown
-		};
-		const directionsString = Object.keys(directionsMap)
-			.filter(key => directionsMap[key])
-			.join(' - ');
-		
-        this.textDebugPlayer.setText(
+    this.textDebug = this.game.add.group();
+    this.textDebugPlayer = this.game.add.text(75, 70, '', textStyleDebug);
+    this.textDebugHostiles = this.game.add.text(250, 70, '', textStyleDebug);
+    this.textDebugMission = this.game.add.text(425, 70, '', textStyleDebug);
+    this.textDebugControls = this.game.add.text(600, 70, '', textStyleDebug);
+    this.textDebug.addMultiple([this.textDebugControls, this.textDebugPlayer, this.textDebugMission, this.textDebugHostiles]);
+    this.textDebug.fixedToCamera = true;
+    this.textDebug.alpha = 0.3;
+  }
+
+  update(timeLeft) {
+    if (!this.game.__DEBUG_MODE) {
+      return;
+    }
+    const {
+      up, down, left, right,
+      x, y, distance, angle,
+      rotation, inUse
+    } = this.joystick.properties;
+
+    const killCount = this.hostiles.spawnedCount - this.hostiles.spriteGroup.length;
+
+    const directionsMap = {
+      dU: up, dD: down, dL: left, dR: right,
+      aU: this.keyboard.cursorUp.isDown,
+      aL: this.keyboard.cursorLeft.isDown,
+      aR: this.keyboard.cursorRight.isDown
+    };
+    const directionsString = Object.keys(directionsMap)
+      .filter(key => directionsMap[key])
+      .join(' - ');
+
+    this.textDebugPlayer.setText(
 `-- COORDS --
 x: ${ Math.floor(this.player.sprite.x)}, y: ${ Math.floor(this.player.sprite.y) }
 thrust: ${ Math.floor(this.player.thrust) }
@@ -88,8 +87,8 @@ x: ${ x }, y: ${ y }
 distance: ${ distance }
 angle: ${ angle.toFixed(4) }
 rotation: ${ rotation.toFixed(4) }
-        `);
-    }
+    `);
+  }
 }
 
 export default DebugText;

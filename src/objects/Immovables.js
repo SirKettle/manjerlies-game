@@ -15,9 +15,9 @@ class Immovables {
 
 	spawn(x, y){
 		const sprite = this.game.add.sprite(x, y, this.texture);
-        this.game.physics.arcade.enable(sprite);
+    this.game.physics.arcade.enable(sprite);
 		sprite.enableBody = true;
-        sprite.body.immovable = true;
+    sprite.body.immovable = true;
 		this.spriteGroup.add(sprite);
 		this.spawnedCount += 1;
 	}
@@ -25,5 +25,3 @@ class Immovables {
 }
 
 export default Immovables;
-
-

@@ -60,7 +60,6 @@
         // Class members
         this.input = this.game.input;
         this.joystick = null;
-        this.joystickPad = null;
         this.joystickPoint = null;
         this.joystickRadius = null;
         this.joystickPointer = null;
@@ -103,11 +102,11 @@
         this.joystick.anchor.set(0.5);
         this.joystick.fixedToCamera = true;
         this.joystick.scale.setTo(scale, scale);
-        this.joystickPad = this.game.add.sprite(x, y, key);
-        this.joystickPad.frame = 3;
-        this.joystickPad.anchor.set(0.5);
-        this.joystickPad.fixedToCamera = true;
-        this.joystickPad.scale.setTo(scale, scale);
+        this.joystick._padSprite = this.game.add.sprite(x, y, key);
+        this.joystick._padSprite.frame = 3;
+        this.joystick._padSprite.anchor.set(0.5);
+        this.joystick._padSprite.fixedToCamera = true;
+        this.joystick._padSprite.scale.setTo(scale, scale);
         
         // Remember the coordinates of the joystick
         this.joystickPoint = new Phaser.Point(x, y);
@@ -276,8 +275,8 @@
         }
         
         // Move joystick pad images
-        that.joystickPad.cameraOffset.x = that.joystickPoint.x + deltaX;
-        that.joystickPad.cameraOffset.y = that.joystickPoint.y + deltaY;
+        that.joystick._padSprite.cameraOffset.x = that.joystickPoint.x + deltaX;
+        that.joystick._padSprite.cameraOffset.y = that.joystickPoint.y + deltaY;
     };
     
 } (Phaser));
