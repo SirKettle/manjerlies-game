@@ -28,14 +28,18 @@ const padNumber = (integer) => {
 		return `0${integer}`;
 	}
 	return integer.toString();
-}
+};
 
 const formatTime = (ms) => {
 	const totalSecs = Math.floor(ms * 0.001);
 	const mins = Math.floor(totalSecs / 60);
 	const secs = totalSecs % 60;
 	return `${padNumber(mins)}:${padNumber(secs)}`;
-}
+};
+
+const isBetween = (num, greaterThan, lessThan) => {
+  return R.gte(num, greaterThan) && R.lt(num, lessThan);
+};
 
 class Cockpit {
 
@@ -54,11 +58,6 @@ class Cockpit {
     this.cockpitSprite = this.game.add.sprite(0, 0, 'cockpit');
     this.cockpitSprite.fixedToCamera = true;
     this.cockpitSprite.scale.setTo(0.5, 0.5);
-    this.proximityAlertSprite = this.game.add.sprite(CANVAS.WIDTH * 0.5, CANVAS.HEIGHT * 0.5 - this.player.cameraOffset.y, 'proximity_alert');
-    this.proximityAlertSprite.fixedToCamera = true;
-    this.proximityAlertSprite.scale.setTo(0.5);
-    this.proximityAlertSprite.anchor.setTo(0.5);
-    this.proximityAlertSprite.alpha = 0.2;
     this.barHealthSprite = this.game.add.sprite(CANVAS.WIDTH * 0.5 + 75, CANVAS.HEIGHT - 70, 'bar_health');
     this.barHealthSprite.alpha = 0.9;
     this.barHealthSprite.fixedToCamera = true;
@@ -83,6 +82,30 @@ class Cockpit {
     this.renderPlayerMap();
     this.renderRadar();
     this.renderThrustGuage();
+    this.renderProximityAlert();
+  }
+
+  renderProximityAlert() {
+
+    const createProximityAlert = (xOffset, yOffset) => {
+      const sprite = this.game.add.sprite(CANVAS.WIDTH * 0.5 + xOffset, CANVAS.HEIGHT * 0.5 - this.player.cameraOffset.y + yOffset, 'proximity_alert_direction');
+      sprite.fixedToCamera = true;
+      sprite.scale.setTo(0.5);
+      sprite.anchor.setTo(0.5);
+      sprite.alpha = 0.2;
+      return sprite;
+    };
+
+    this.proximityAlerts = {
+      up: createProximityAlert(0, -50),
+      right: createProximityAlert(120, 0),
+      down: createProximityAlert(0, 50),
+      left: createProximityAlert(-120, 0)
+    };
+
+    this.proximityAlerts.down.rotation = Math.PI;
+    this.proximityAlerts.right.rotation = Math.PI * 0.5;
+    this.proximityAlerts.left.rotation = -Math.PI * 0.5;
   }
 
   renderThrustGuage() {
@@ -141,20 +164,48 @@ class Cockpit {
   }
 
   updateProximityAlert() {
-		const distancesFromImmovables = this.immovables.spriteGroup.children.map(immovable => {
-			return Phaser.Math.distance(this.player.sprite.centerX, this.player.sprite.centerY, immovable.centerX, immovable.centerY);
+    // Reset alerts
+    Object.values(this.proximityAlerts)
+    .forEach(sprite => {
+      sprite.alpha = this.proximityAlertConfig.minAlpha;
     });
 
-    const closestImmovableDistance = R.reduce((acc, val) => {
-      return val < acc ? val : acc;
-    }, Infinity, distancesFromImmovables);
+    const proximities = this.immovables.spriteGroup.children
+      .concat(this.hostiles.spriteGroup.children)
+      .map(sprite => {
+        return {
+          distance: Phaser.Math.distance(this.player.sprite.centerX, this.player.sprite.centerY, sprite.centerX, sprite.centerY),
+          angle: Phaser.Math.angleBetween(this.player.sprite.centerX, this.player.sprite.centerY, sprite.centerX, sprite.centerY)
+        };
+      });
 
-		if (closestImmovableDistance < this.proximityAlertConfig.range) {
-      this.proximityAlertSprite.alpha = (this.proximityAlertConfig.range - closestImmovableDistance) / this.proximityAlertConfig.range + this.proximityAlertConfig.minAlpha * 2;
+    const closestProximity = R.reduce((acc, val) => {
+      return (!acc || val.distance < acc.distance) ? val : acc;
+    }, undefined, proximities);
+
+		if (closestProximity.distance < this.proximityAlertConfig.range) {
+      // 1. if within range set alpha based on proximity
+      const alpha = R.clamp(0, 1)((this.proximityAlertConfig.range - closestProximity.distance) / this.proximityAlertConfig.range + this.proximityAlertConfig.minAlpha * 2);
+
+      // 2. Only show the alert in general direction
+      if (isBetween(closestProximity.angle, -Math.PI * 0.75, -Math.PI * 0.25)) {
+        this.proximityAlerts.up.alpha = alpha;
+        return;
+      }
+
+      if (isBetween(closestProximity.angle, Math.PI * 0.25, Math.PI * 0.75)) {
+        this.proximityAlerts.down.alpha = alpha;
+        return;
+      }
+
+      if (Math.abs(closestProximity.angle) > Math.PI * 0.5) {
+        this.proximityAlerts.left.alpha = alpha;
+        return;
+      }
+
+      this.proximityAlerts.right.alpha = alpha;
       return;
     }
-
-    this.proximityAlertSprite.alpha = this.proximityAlertConfig.minAlpha;
   }
 
 }

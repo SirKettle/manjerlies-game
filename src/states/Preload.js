@@ -6,7 +6,7 @@ export const assets = {
     parallax_far: 'assets/parallax_far.png',
     radar_mask: 'assets/radar-mask.png',
     radar_frame: 'assets/radar-frame.png',
-    proximity_alert: 'assets/proximity_alert.png',
+    proximity_alert_direction: 'assets/proximity_alert_direction.png',
     guage: 'assets/guage.png',
     guage_needle: 'assets/guage_needle.png',
     parallax_mid: 'assets/parallax_mid.png',
