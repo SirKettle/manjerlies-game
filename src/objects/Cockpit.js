@@ -165,10 +165,10 @@ class Cockpit {
 
   updateProximityAlert() {
     // Reset alerts
-    Object.values(this.proximityAlerts)
-    .forEach(sprite => {
-      sprite.alpha = this.proximityAlertConfig.minAlpha;
-    });
+    Object.keys(this.proximityAlerts)
+      .forEach(key => {
+        this.proximityAlerts[key].alpha = this.proximityAlertConfig.minAlpha;
+      });
 
     const proximities = this.immovables.spriteGroup.children
       .concat(this.hostiles.spriteGroup.children)
