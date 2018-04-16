@@ -48,7 +48,7 @@ class Cockpit {
     this.player = args.player;
     this.hostiles = args.hostiles;
     this.immovables = args.immovables;
-    this.mission = args.mission;
+    this.objectives = args.objectives;
 
     this.proximityAlertConfig = {
       range: 500,
@@ -137,7 +137,7 @@ class Cockpit {
 			width: this.game.width * ratioToScreenScale,
 			height: this.game.width * 12 / 8 * ratioToScreenScale,
 			color: '#00ff33',
-			grid: this.mission.grid,
+			grid: this.objectives.grid,
 			offset: {
 				x: 25,
 				y: 70
@@ -146,7 +146,7 @@ class Cockpit {
 	}
 
 	update(timeLeft) {
-		this.textMission.setText(`Destroy ${this.mission.kills} hostiles before it’s too late!`);
+		this.textMission.setText(`Destroy ${this.objectives.kills} hostiles before it’s too late!`);
 		this.textMissionTime.setText(formatTime(timeLeft));
 
 		this.textConsole.setText(`Targets destroyed: ${ this.hostiles.spawnedCount - this.hostiles.spriteGroup.length } - <|${this.game.time.fps}|>`);

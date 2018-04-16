@@ -13,7 +13,7 @@ class DebugText {
       return;
     }
 
-    this.mission = args.mission;
+    this.objectives = args.objectives;
     this.hostiles = args.hostiles;
     this.player = args.player;
     this.joystick = args.joystick;
@@ -66,7 +66,7 @@ health: ${ Math.floor(this.player.health * 100) }%
     this.textDebugMission.setText(
 `--- MISSION ---
 score: ${this.game._global.score}
-targets: ${killCount}/${this.mission.kills}
+targets: ${killCount}/${this.objectives.kills}
 time left: ${ timeLeft }
     `);
 

@@ -6,6 +6,7 @@ import Immovables from '../objects/Immovables';
 import ParallaxTile from '../objects/ParallaxTile';
 import DebugText from '../objects/DebugText';
 import Cockpit from '../objects/Cockpit';
+import MissionService, { DEFAULT_GRID } from '../services/MissionService';
 
 require('../plugins/virtual-gamepad.js');
 
@@ -18,21 +19,6 @@ const ENERGY_COST = {
 	LASER: 0.05,
 	THRUST: 0.01
 };
-
-const DEFAULT_GRID = [
-	[1,1,0,0,0,0,1,1],
-	[1,1,0,0,0,0,1,1],
-	[1,1,0,0,0,0,1,1],
-	[1,1,1,0,0,1,1,1],
-	[0,0,0,0,0,0,0,0],
-	[1,1,0,0,0,0,1,1],
-	[1,1,0,0,0,0,1,1],
-	[1,0,0,0,0,0,0,],
-	[0,0,0,1,1,0,0,0],
-	[0,0,1,1,1,1,0,0],
-	[1,0,0,1,1,0,0,1],
-	[0,0,0,1,1,0,0,0]
-];
 
 const getRandomCoords = (maxX, maxY) => {
 	return {
@@ -61,65 +47,14 @@ class Main extends Phaser.State {
 	}
 
 	create() {
-		// Set mission targets
-		// TODO: this needs to be extended and randomly generated ot create levels
-		console.log('create mission!');
-		const maxHostiles = this.game.rnd.integerInRange(15, 20);
-		this.__mission = {
-			time: this.game.rnd.integerInRange(4, 9) * 10000,
-			kills: this.game.rnd.integerInRange(10, maxHostiles),
-			hostiles: {
-				initial: this.game.rnd.integerInRange(1, 10),
-				max: maxHostiles,
-				spawnRate: 2 / 1
-			},
-			grid: DEFAULT_GRID
-		};
-
-		// this.__mission.hostiles.initial = 0;
-		// this.__mission.hostiles.max = 1;
-
-		// Add the mission timer
-		this.__timer = this.game.time.create();
-		this.__timerEvent = this.__timer.add(this.__mission.time, this.onTimeUp, this);
-    this.__timer.start();
-
-		this.game._global.missionComplete = false;
-		this.game._global.score = 0;
-		this.game._global.missionCount += 1;
-
-		// Set game world
-		this.setWorld(this.__mission.grid);
-		this.game.world.setBounds(0, 0, this._world.width, this._world.height);
 		this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
-		// Touch controls
-		this._gamepad = this.game.plugins.add(Phaser.Plugin.VirtualGamepad);
-		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad');
-		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - 75, CANVAS.HEIGHT - 70, 1, 'gamepad');
+    this.setMissionObjectives();
+    this.resetMission();
 
-		// Keyboard controls
-		this.keyboard = {
-			cursorUp: this.game.input.keyboard.addKey(Phaser.Keyboard.UP),
-			cursorDown: this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN),
-			cursorLeft: this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT),
-			cursorRight: this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
-			spaceBar: this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
-		}
+    this.initUserInputControls();
 
-		// Add background tiles
-		this.game.stage.backgroundColor = '#6f0100';
-		// this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'bg');
-		this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'grid');
-		this._parallax = [
-			new ParallaxTile(this.game, 'parallax_far', 0.05),
-			new ParallaxTile(this.game, 'parallax_mid', 0.15),
-			// new ParallaxTile(this.game, 'parallax_near', 0.5),
-			new ParallaxTile(this.game, 'parallax_near', 1.5)
-		];
-
-		// Render the walls of the body
-		this.renderBoundaryBlocks();
+    this.initBackground();
 
 		// Add the player
 		this._player = new Player(this.game, {
@@ -142,7 +77,7 @@ class Main extends Phaser.State {
 		this.laserTime = 0;
 
 		// Add some enemies
-		this._hostiles = new Hostiles(this.game, this.__mission.hostiles);
+		this._hostiles = new Hostiles(this.game, this._missionObjectives.hostiles);
 
 		this.__emitterBloodSplatter = this.game.add.emitter(0, 0, 1000);
 		this.__emitterBloodSplatter.makeParticles(['blood_splatter_yellow', 'blood_splatter_green']);
@@ -156,74 +91,107 @@ class Main extends Phaser.State {
 		// Camera to follow the player
 		this.game.camera.follow(this._player.cameraSprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
+    this._mission = new MissionService(this.game, {
+			player: this._player,
+			hostiles: this._hostiles,
+      objectives: this._missionObjectives
+		});
+
 		// Bring last parallax bg in front of player
 		R.last(this._parallax).tileSprite.bringToTop();
-		this.game.world.bringToTop(this._immovables.spriteGroup);
-		this.game.world.bringToTop(this._immovables.spriteGroup);
+		this.game.world.bringToTop(this._mission.immovables.spriteGroup);
+    this.game.world.bringToTop(this._mission.immovables.spriteGroup);
 
 		this._cockpit = new Cockpit(this.game, {
 			player: this._player,
 			hostiles: this._hostiles,
-      mission: this.__mission,
-      immovables: this._immovables
-		});
+      objectives: this._missionObjectives,
+      immovables: this._mission.immovables
+    });
 
 		// Display console - debug
 		this._debugText = new DebugText(this.game, {
-			mission: this.__mission,
+			objectives: this._missionObjectives,
 			hostiles: this._hostiles,
 			player: this._player,
 			joystick: this._joystick,
 			keyboard: this.keyboard
 		});
 
-		R.times(() => { this.spawnGerm(); }, this.__mission.hostiles.initial);
+		R.times(() => { this.spawnGerm(); }, this._missionObjectives.hostiles.initial);
+
+    this.setSpriteLayersPosition()
+  }
+
+  setMissionObjectives() {
+		// Set mission targets
+		// TODO: this needs to be extended and randomly generated ot create levels
+    console.log('create mission!');
+		const maxHostiles = this.game.rnd.integerInRange(15, 20);
+		this._missionObjectives = {
+			time: this.game.rnd.integerInRange(4, 9) * 10000,
+			kills: this.game.rnd.integerInRange(10, maxHostiles),
+			hostiles: {
+				initial: this.game.rnd.integerInRange(1, 10),
+				max: maxHostiles,
+				spawnRate: 2 / 1
+			},
+			grid: DEFAULT_GRID
+		};
+
+		// this._missionObjectives.hostiles.initial = 0;
+		// this._missionObjectives.hostiles.max = 1;
+  }
+
+  resetMission() {
+    // Reset global values
+		this.game._global.missionComplete = false;
+		this.game._global.score = 0;
+		this.game._global.missionCount += 1;
+  }
+
+  initUserInputControls() {
+		// Touch controls
+		this._gamepad = this.game.plugins.add(Phaser.Plugin.VirtualGamepad);
+		this._joystick = this._gamepad.addJoystick(GAMEPAD.PADDING, CANVAS.HEIGHT - GAMEPAD.PADDING, 1.2, 'gamepad');
+		this._fireButton = this._gamepad.addButton(CANVAS.WIDTH - 75, CANVAS.HEIGHT - 70, 1, 'gamepad');
+
+		// Keyboard controls
+		this.keyboard = {
+			cursorUp: this.game.input.keyboard.addKey(Phaser.Keyboard.UP),
+			cursorDown: this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN),
+			cursorLeft: this.game.input.keyboard.addKey(Phaser.Keyboard.LEFT),
+			cursorRight: this.game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
+			spaceBar: this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
+		}
+  }
+
+  initBackground() {
+		// Add background tiles
+		this.game.stage.backgroundColor = '#6f0100';
+		// this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'bg');
+		this.game.add.tileSprite(0, 0, this.game.world.width, this.game.world.height, 'grid');
+		this._parallax = [
+			new ParallaxTile(this.game, 'parallax_far', 0.05),
+			new ParallaxTile(this.game, 'parallax_mid', 0.15),
+			// new ParallaxTile(this.game, 'parallax_near', 0.5),
+			new ParallaxTile(this.game, 'parallax_near', 1.5)
+		];
+  }
+
+  setSpriteLayersPosition() {
+
+		// Bring last parallax bg in front of player
+		R.last(this._parallax).tileSprite.bringToTop();
+    this.game.world.bringToTop(this._mission.immovables.spriteGroup);
+
+		// this._cockpit
+		// this._debugText
 
 		this._joystick.bringToTop();
 		this._joystick._padSprite.bringToTop();
-		this._fireButton.bringToTop();
-	}
-
-	setWorld(grid) {
-		this._world = {
-			blocks: {
-				size: 500
-			}
-		};
-
-		this._world.blocks.columns = grid[0].length;
-		this._world.blocks.rows = grid.length;
-		this._world.width = this._world.blocks.columns * this._world.blocks.size;
-		this._world.height = this._world.blocks.rows * this._world.blocks.size;
-	}
-
-	renderBoundaryBlocks() {
-		const colCount = this.__mission.grid[0].length;
-		const rowCount = this.__mission.grid.length;
-		const blockWidth = this.game.world.width / colCount;
-		const blockHeight = this.game.world.height / rowCount;
-		const blockPoints = R.flatten(
-			this.__mission.grid.map((row, rowIndex) => {
-				return row.map((is, colIndex) => {
-					return {
-						is,
-						x: colIndex * blockWidth,
-						y: rowIndex * blockHeight
-					};
-				});
-			})
-		).filter(point => point.is === 1);
-
-		this._immovables = new Immovables(this.game, {
-			width: blockWidth,
-			height: blockHeight,
-			color: '#2f0100'
-		});
-
-		blockPoints.forEach(point => {
-			this._immovables.spawn(point.x, point.y);
-		});
-	}
+    this._fireButton.bringToTop();
+  }
 
 	spawnGerm() {
 		const { x, y } = getRandomCoords(this._world.width, this._world.height);
@@ -285,9 +253,9 @@ class Main extends Phaser.State {
 		// Collision detection
 		this.game.physics.arcade.overlap(this.lasers, this._hostiles.spriteGroup, this.onLaserHitGerm.bind(this));
 		this.game.physics.arcade.collide(this._player.sprite, this._hostiles.spriteGroup, this.onPlayerGermImpact.bind(this));
-		this.game.physics.arcade.collide(this._player.sprite, this._immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
-		this.game.physics.arcade.overlap(this.lasers, this._immovables.spriteGroup, this.onLaserImmovableImpact.bind(this));
-		this.game.physics.arcade.collide(this._hostiles.spriteGroup, this._immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
+		this.game.physics.arcade.collide(this._player.sprite, this._mission.immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
+		this.game.physics.arcade.overlap(this.lasers, this._mission.immovables.spriteGroup, this.onLaserImmovableImpact.bind(this));
+		this.game.physics.arcade.collide(this._hostiles.spriteGroup, this._mission.immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
 
 		// update debug info
 		this._debugText.update(timeLeft);
@@ -295,29 +263,18 @@ class Main extends Phaser.State {
 		// update the cockpit dashboard
 		this._cockpit.update(timeLeft);
 
-		const germSpawnFrequencyPerSecond = this.__mission.hostiles.spawnRate;
+		const germSpawnFrequencyPerSecond = this._missionObjectives.hostiles.spawnRate;
 		doPerSecondProbably(() => { this.spawnGerm(); }, delta, germSpawnFrequencyPerSecond);
 
-		this.checkMission();
+    this._mission.check();
 
 		this._parallax.forEach((parallax, index) => {
 			parallax.update(this._player.sprite.x, this._player.sprite.y);
 		});
 	}
 
-	showRedLight() {
-		console.log('showRedLight')
-	}
-
 	addScore(increase) {
 		this.game._global.score += increase;
-	}
-
-	checkMission() {
-		const killCount = this._hostiles.spawnedCount - this._hostiles.spriteGroup.length;
-		if (killCount >= this.__mission.kills) {
-			this.missionComplete();
-		}
 	}
 
 	// TODO: Should belong in Player.js
@@ -346,21 +303,6 @@ class Main extends Phaser.State {
 			this.laserTime = this.game.time.now + 100;
 			this._player.updateEnergy(-ENERGY_COST.LASER);
 		}
-	}
-
-	restartGame() {
-		this.initGameState();
-		this.game.state.restart();
-	}
-
-	missionComplete() {
-		this.game._global.missionComplete = true;
-		this.game.state.start('GameOver');
-	}
-
-	onTimeUp() {
-		this.game._global.timeUp = true;
-		this.game.state.start('GameOver');
 	}
 
 }
