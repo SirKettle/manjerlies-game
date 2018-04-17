@@ -1,4 +1,5 @@
 import R from 'ramda';
+import Immovables from '../objects/Immovables';
 
 export const DEFAULT_GRID = [
 	[1,1,0,0,0,0,1,1],
@@ -19,18 +20,28 @@ class MissionService {
 
 	constructor(game, args){
     this.game = game;
-    this.player = args.player;
-    this.hostiles = args.hostiles;
     this.objectives = args.objectives;
 
-		// Add the mission timer
-		this.__timer = this.game.time.create();
-		this.__timerEvent = this.__timer.add(this._missionObjectives.time, this.onTimeUp, this);
-    this.__timer.start();
-
     this.setWorld();
-    this.initImmovables();
     this.game.world.setBounds(0, 0, this.world.width, this.world.height);
+    this.initImmovables();
+  }
+
+  initialize(args) {
+    this.player = args.player;
+    this.hostiles = args.hostiles;
+
+		// Add the mission timer
+		this.timer = this.game.time.create();
+		this.timerEvent = this.timer.add(this.objectives.time, this.timeUp, this);
+    this.timer.start();
+
+    this.update();
+  }
+
+  update() {
+		this.delta = this.game.time.physicsElapsed;
+		this.timeLeft = this.timerEvent.delay - this.timer.ms;
   }
 
 	setWorld() {
@@ -47,25 +58,21 @@ class MissionService {
 	}
 
 	initImmovables() {
-		const colCount = this.objectives.grid[0].length;
-		const rowCount = this.objectives.grid.length;
-		const blockWidth = this.game.world.width / colCount;
-		const blockHeight = this.game.world.height / rowCount;
 		const blockPoints = R.flatten(
 			this.objectives.grid.map((row, rowIndex) => {
 				return row.map((is, colIndex) => {
 					return {
 						is,
-						x: colIndex * blockWidth,
-						y: rowIndex * blockHeight
+						x: colIndex * this.world.blocks.size,
+						y: rowIndex * this.world.blocks.size
 					};
 				});
 			})
 		).filter(point => point.is === 1);
 
 		this.immovables = new Immovables(this.game, {
-			width: blockWidth,
-			height: blockHeight,
+			width: this.world.blocks.size,
+			height: this.world.blocks.size,
 			color: '#2f0100'
 		});
 

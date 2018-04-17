@@ -19,6 +19,17 @@ export const PLAYER = {
 	HEIGHT: 86
 };
 
+const ENERGY_COST = {
+	LASER: 0.05,
+	THRUST: 0.01
+};
+
+const LASER = {
+  repeatDelay: 100,
+  lifespan: 2000,
+  velocity: 1200
+};
+
 class Player {
 
 	constructor(game, args) {
@@ -36,11 +47,9 @@ class Player {
     this.keyboard = args.keyboard;
     this.joystick = args.joystick;
     this.fireButton = args.fireButton;
-  }
 
-	fireLaser() {
-		console.log('move turret on player');
-	}
+    this.spawn();
+  }
 
 	spawn() {
 		// Add sprite for camera to follow
@@ -61,11 +70,23 @@ class Player {
 		this.sprite.lastAngle = -90;
 
 		// create particle emitters
-		this.emitterThrust = this.game.add.emitter(0, 0, 1000);
-		this.emitterThrust.makeParticles('bubble');
-		this.emitterThrust.lifespan = 500;
-		this.emitterThrust.maxParticleSpeed = new Phaser.Point(50, 50);
-		this.emitterThrust.minParticleSpeed = new Phaser.Point(-50, -50);
+    this.emitterThrust = this.game.add.emitter(0, 0, 1000);
+    this.emitterThrust.makeParticles('bubble');
+    this.emitterThrust.lifespan = 500;
+    this.emitterThrust.maxParticleSpeed = new Phaser.Point(50, 50);
+    this.emitterThrust.minParticleSpeed = new Phaser.Point(-50, -50);
+
+    // TODO: eplace with Phaser.Weapon?
+    // Add some lasers for the player
+    this.lasers = this.game.add.group();
+    this.lasers.enableBody = true;
+    this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
+    this.lasers.createMultiple(20, 'laser');
+    this.lasers.setAll('scale.x', 0.5);
+    this.lasers.setAll('scale.y', 0.5);
+    this.lasers.setAll('anchor.x', 0.5);
+    this.lasers.setAll('anchor.y', 0.5);
+    this.laserDelayTime = 0;
   }
 
 	updatePlayer(delta) {
@@ -81,6 +102,32 @@ class Player {
 		this.cameraSprite.x = this.sprite.x + this.cameraOffset.x;
 		this.cameraSprite.y = this.sprite.y + this.cameraOffset.y;
 		this.cameraSprite.angle = this.sprite.angle;
+	}
+
+	fireLaser() {
+		console.log('TODO: Tween turret on player');
+		if (this.energy < ENERGY_COST.LASER ||
+			this.game.time.now <= this.laserDelayTime) {
+			return;
+		}
+
+		const laser = this.lasers.getFirstExists(false);
+
+		if (laser) {
+			laser.reset(
+				this.sprite.centerX,
+				this.sprite.centerY
+			);
+			laser.lifespan = LASER.lifespan;
+			laser.angle = this.sprite.angle;
+			this.game.physics.arcade.velocityFromRotation(
+				this.sprite.rotation,
+				LASER.velocity,
+				laser.body.velocity
+			);
+			this.laserDelayTime = this.game.time.now + LASER.repeatDelay;
+			this.updateEnergy(-ENERGY_COST.LASER);
+		}
 	}
 
 	updateEnergy(increase) {

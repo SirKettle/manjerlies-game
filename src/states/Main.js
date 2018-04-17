@@ -2,22 +2,16 @@ import R from 'ramda';
 import { CANVAS } from '../index';
 import Player from '../objects/Player';
 import Hostiles from '../objects/Hostiles';
-import Immovables from '../objects/Immovables';
 import ParallaxTile from '../objects/ParallaxTile';
 import DebugText from '../objects/DebugText';
 import Cockpit from '../objects/Cockpit';
-import MissionService, { DEFAULT_GRID } from '../services/MissionService';
+import MissionService, { DEFAULT_GRID } from '../services/Mission';
 
 require('../plugins/virtual-gamepad.js');
 
 export const GAMEPAD = {
 	SIZE: 100,
 	PADDING: 120
-};
-
-const ENERGY_COST = {
-	LASER: 0.05,
-	THRUST: 0.01
 };
 
 const getRandomCoords = (maxX, maxY) => {
@@ -50,7 +44,11 @@ class Main extends Phaser.State {
 		this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.setMissionObjectives();
-    this.resetMission();
+    this.resetGame();
+
+    this._mission = new MissionService(this.game, {
+      objectives: this._missionObjectives
+    });
 
     this.initUserInputControls();
 
@@ -62,19 +60,6 @@ class Main extends Phaser.State {
 			joystick: this._joystick,
 			fireButton: this._fireButton
 		});
-		this._player.spawn();
-
-		// TODO: Should belong in Player.js
-		// Add some lasers for the player
-    this.lasers = this.game.add.group();
-    this.lasers.enableBody = true;
-    this.lasers.physicsBodyType = Phaser.Physics.ARCADE;
-    this.lasers.createMultiple(20, 'laser');
-    this.lasers.setAll('scale.x', 0.5);
-    this.lasers.setAll('scale.y', 0.5);
-    this.lasers.setAll('anchor.x', 0.5);
-    this.lasers.setAll('anchor.y', 0.5);
-		this.laserTime = 0;
 
 		// Add some enemies
 		this._hostiles = new Hostiles(this.game, this._missionObjectives.hostiles);
@@ -91,10 +76,9 @@ class Main extends Phaser.State {
 		// Camera to follow the player
 		this.game.camera.follow(this._player.cameraSprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
-    this._mission = new MissionService(this.game, {
+    this._mission.initialize({
 			player: this._player,
-			hostiles: this._hostiles,
-      objectives: this._missionObjectives
+			hostiles: this._hostiles
 		});
 
 		// Bring last parallax bg in front of player
@@ -138,12 +122,9 @@ class Main extends Phaser.State {
 			},
 			grid: DEFAULT_GRID
 		};
-
-		// this._missionObjectives.hostiles.initial = 0;
-		// this._missionObjectives.hostiles.max = 1;
   }
 
-  resetMission() {
+  resetGame() {
     // Reset global values
 		this.game._global.missionComplete = false;
 		this.game._global.score = 0;
@@ -181,9 +162,9 @@ class Main extends Phaser.State {
 
   setSpriteLayersPosition() {
 
-		// Bring last parallax bg in front of player
-		R.last(this._parallax).tileSprite.bringToTop();
-    this.game.world.bringToTop(this._mission.immovables.spriteGroup);
+		// // Bring last parallax bg in front of player
+		// R.last(this._parallax).tileSprite.bringToTop();
+    // this.game.world.bringToTop(this._mission.immovables.spriteGroup);
 
 		// this._cockpit
 		// this._debugText
@@ -194,7 +175,7 @@ class Main extends Phaser.State {
   }
 
 	spawnGerm() {
-		const { x, y } = getRandomCoords(this._world.width, this._world.height);
+		const { x, y } = getRandomCoords(this._mission.world.width, this._mission.world.height);
 		this._hostiles.spawn(x, y);
 	}
 
@@ -241,30 +222,28 @@ class Main extends Phaser.State {
 	}
 
 	update() {
-		const delta = this.game.time.physicsElapsed;
-		const timeLeft = this.__timerEvent.delay - this.__timer.ms;
-
-		this._player.updatePlayer(delta);
+		this._mission.update();
+		this._player.updatePlayer(this._mission.delta);
 
 		if (this.keyboard.spaceBar.isDown || this._fireButton.isDown) {
-			this.fireLaser();
+			this._player.fireLaser();
 		}
 
 		// Collision detection
-		this.game.physics.arcade.overlap(this.lasers, this._hostiles.spriteGroup, this.onLaserHitGerm.bind(this));
+		this.game.physics.arcade.overlap(this._player.lasers, this._hostiles.spriteGroup, this.onLaserHitGerm.bind(this));
 		this.game.physics.arcade.collide(this._player.sprite, this._hostiles.spriteGroup, this.onPlayerGermImpact.bind(this));
 		this.game.physics.arcade.collide(this._player.sprite, this._mission.immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
-		this.game.physics.arcade.overlap(this.lasers, this._mission.immovables.spriteGroup, this.onLaserImmovableImpact.bind(this));
+		this.game.physics.arcade.overlap(this._player.lasers, this._mission.immovables.spriteGroup, this.onLaserImmovableImpact.bind(this));
 		this.game.physics.arcade.collide(this._hostiles.spriteGroup, this._mission.immovables.spriteGroup, this.onActorImmovableImpact.bind(this));
 
 		// update debug info
-		this._debugText.update(timeLeft);
+		this._debugText.update(this._mission.timeLeft);
 
 		// update the cockpit dashboard
-		this._cockpit.update(timeLeft);
+		this._cockpit.update(this._mission.timeLeft);
 
 		const germSpawnFrequencyPerSecond = this._missionObjectives.hostiles.spawnRate;
-		doPerSecondProbably(() => { this.spawnGerm(); }, delta, germSpawnFrequencyPerSecond);
+		doPerSecondProbably(() => { this.spawnGerm(); }, this._mission.delta, germSpawnFrequencyPerSecond);
 
     this._mission.check();
 
@@ -275,34 +254,6 @@ class Main extends Phaser.State {
 
 	addScore(increase) {
 		this.game._global.score += increase;
-	}
-
-	// TODO: Should belong in Player.js
-	fireLaser() {
-		if (this._player.energy < ENERGY_COST.LASER ||
-			this.game.time.now <= this.laserTime) {
-			return;
-		}
-
-		this._player.fireLaser();
-
-		this.laser = this.lasers.getFirstExists(false);
-
-		if (this.laser) {
-			this.laser.reset(
-				this._player.sprite.centerX,
-				this._player.sprite.centerY
-			);
-			this.laser.lifespan = 2000;
-			this.laser.angle = this._player.sprite.angle;
-			this.game.physics.arcade.velocityFromRotation(
-				this._player.sprite.rotation,
-				1000,
-				this.laser.body.velocity
-			);
-			this.laserTime = this.game.time.now + 100;
-			this._player.updateEnergy(-ENERGY_COST.LASER);
-		}
 	}
 
 }
