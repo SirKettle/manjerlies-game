@@ -85,7 +85,7 @@ class MissionService {
 	check() {
 		const killCount = this.hostiles.spawnedCount - this.hostiles.spriteGroup.length;
 		if (killCount >= this.objectives.kills) {
-			this.missionComplete();
+			this.complete();
 		}
 	}
 

@@ -121,6 +121,17 @@ class Main extends Phaser.State {
 				spawnRate: 2 / 1
 			},
 			grid: DEFAULT_GRID
+    };
+
+    const debugObjectives = {
+			time: 20000,
+			kills: 1,
+			hostiles: {
+				initial: 10,
+				max: 10,
+				spawnRate: 2 / 1
+			},
+			grid: DEFAULT_GRID
 		};
   }
 

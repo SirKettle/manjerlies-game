@@ -1,3 +1,4 @@
+import R from 'ramda';
 import { GAMEPAD } from './Main';
 
 export const assets = {
@@ -25,20 +26,29 @@ export const assets = {
     manjerly_fighter_ship: 'assets/manjerly_fighter_ship.png',
     turret: 'assets/manjerly_fighter_ship_turret.png',
     laser: 'assets/laser.png',
-    bubble: 'assets/bubble.png'
+    bubble: 'assets/bubble.png',
+
+    sub: 'assets/images/sub.png'
   },
   spritesheets: {
     gamepad: {
       src: 'assets/gamepad_spritesheet2.png',
       width: GAMEPAD.SIZE,
       height: GAMEPAD.SIZE
+    },
+    germ1: {
+      src: 'assets/spritesheets/germ1.png',
+      width: 64,
+      height: 64
     }
   },
   audio: {
 		// TODO: Add audio
 		// myAudio: 'assets/my-audio.wav'
   }
-}
+};
+
+export const assetKeys = R.reduce()
 
 class Preload extends Phaser.State {
 
