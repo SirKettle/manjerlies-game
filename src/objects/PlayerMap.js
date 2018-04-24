@@ -2,15 +2,14 @@ import R from 'ramda';
 import Immovables from './Immovables';
 
 class PlayerMap {
-
-	constructor(game, args) {
-		this.game = game;
-		this.spriteGroup = this.game.add.group();
+  constructor(game, args) {
+    this.game = game;
+    this.spriteGroup = this.game.add.group();
     this.spawnedCount = 0;
     this.offset = args.offset;
-		this.width = args.width;
-		this.height = args.height;
-		this.color = args.color;
+    this.width = args.width;
+    this.height = args.height;
+    this.color = args.color;
     this.grid = args.grid;
 
     this.drawBg();
@@ -44,36 +43,41 @@ class PlayerMap {
     const blockWidth = this.width / colCount;
     const blockHeight = this.height / rowCount;
     const blockPoints = R.flatten(
-    this.grid.map((row, rowIndex) => {
-      return row.map((is, colIndex) => {
-        return {
-          is,
-          x: (colIndex * blockWidth) + this.offset.x,
-          y: (rowIndex * blockHeight) + this.offset.y
-        };
-      });
-    })
+      this.grid.map((row, rowIndex) => {
+        return row.map((is, colIndex) => {
+          return {
+            is,
+            x: colIndex * blockWidth + this.offset.x,
+            y: rowIndex * blockHeight + this.offset.y
+          };
+        });
+      })
     ).filter(point => point.is === 1);
 
-		this.immovables = new Immovables(this.game, {
-			width: blockWidth,
-			height: blockHeight,
-			color: this.color
-		});
-
-		blockPoints.forEach(point => {
-			this.immovables.spawn(point.x, point.y);
+    this.immovables = new Immovables(this.game, {
+      width: blockWidth,
+      height: blockHeight,
+      color: this.color
     });
 
-		this.immovables.spriteGroup.fixedToCamera = true;
+    blockPoints.forEach(point => {
+      this.immovables.spawn(point.x, point.y);
+    });
+
+    this.immovables.spriteGroup.fixedToCamera = true;
     this.immovables.spriteGroup.alpha = 0.15;
   }
 
-	updatePlayer(x, y) {
-		this.playerSprite.cameraOffset.x = (x * this.width / this.game.world.width) - (this.playerSprite.width * 0.5) + this.offset.x;
-		this.playerSprite.cameraOffset.y = (y * this.height / this.game.world.height) - (this.playerSprite.height * 0.5) + this.offset.y;
-	}
-
+  updatePlayer(x, y) {
+    this.playerSprite.cameraOffset.x =
+      x * this.width / this.game.world.width -
+      this.playerSprite.width * 0.5 +
+      this.offset.x;
+    this.playerSprite.cameraOffset.y =
+      y * this.height / this.game.world.height -
+      this.playerSprite.height * 0.5 +
+      this.offset.y;
+  }
 }
 
 export default PlayerMap;

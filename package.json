@@ -1,7 +1,8 @@
 {
   "name": "sky-fighter",
   "version": "1.0.0",
-  "description": "A game built with PhaserJs inspired by a boy’s imaginary world",
+  "description":
+    "A game built with PhaserJs inspired by a boy’s imaginary world",
   "main": "src/index.js",
   "scripts": {
     "start": "gulp",

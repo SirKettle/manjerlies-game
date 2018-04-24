@@ -2,12 +2,11 @@ import R from 'ramda';
 import Immovables from './Immovables';
 
 class PlayerRadar {
-
-	constructor(game, args) {
-		this.game = game;
+  constructor(game, args) {
+    this.game = game;
     this.offset = args.offset;
-		this.size = args.size;
-		this.color = args.color;
+    this.size = args.size;
+    this.color = args.color;
     this.range = args.range;
     this.renderBg();
     this.createUfos();
@@ -25,20 +24,34 @@ class PlayerRadar {
   }
 
   renderMask() {
-    this.maskSprite = this.game.add.sprite(this.offset.x, this.offset.y, 'radar_mask');
+    this.maskSprite = this.game.add.sprite(
+      this.offset.x,
+      this.offset.y,
+      'radar_mask'
+    );
     this.maskSprite.fixedToCamera = true;
     this.maskSprite.anchor.set(0.5);
-    this.frameSprite = this.game.add.sprite(this.offset.x, this.offset.y, 'radar_frame');
+    this.frameSprite = this.game.add.sprite(
+      this.offset.x,
+      this.offset.y,
+      'radar_frame'
+    );
     this.frameSprite.fixedToCamera = true;
     this.frameSprite.anchor.set(0.5);
     const scale = this.size / 140;
     this.maskSprite.scale.set(scale);
     this.frameSprite.scale.set(scale);
 
-    this.game.add.tween(this.maskSprite).to({
+    this.game.add.tween(this.maskSprite).to(
+      {
         angle: 359
-      }, 2000,
-      null, true, 0, -1);
+      },
+      2000,
+      null,
+      true,
+      0,
+      -1
+    );
   }
 
   createUfos() {
@@ -51,12 +64,17 @@ class PlayerRadar {
     this.ufos.fixedToCamera = true;
   }
 
-	update(player, hostiles) {
+  update(player, hostiles) {
     const scale = this.size / this.range * 0.5;
     this.ufos.callAll('kill');
 
     hostiles.spriteGroup.forEach(hostile => {
-      const distance = Phaser.Math.distance(player.sprite.centerX, player.sprite.centerY, hostile.centerX, hostile.centerY);
+      const distance = Phaser.Math.distance(
+        player.sprite.centerX,
+        player.sprite.centerY,
+        hostile.centerX,
+        hostile.centerY
+      );
       if (distance < this.range) {
         const ufo = this.ufos.getFirstExists(false);
         if (ufo) {
@@ -65,17 +83,11 @@ class PlayerRadar {
             y: scale * (player.sprite.centerY - hostile.centerY)
           };
 
-          ufo.reset(
-            this.offset.x - offset.x,
-            this.offset.y - offset.y
-          );
+          ufo.reset(this.offset.x - offset.x, this.offset.y - offset.y);
         }
       }
     });
-	}
-
+  }
 }
 
 export default PlayerRadar;
-
-

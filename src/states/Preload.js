@@ -43,41 +43,35 @@ export const assets = {
     }
   },
   audio: {
-		// TODO: Add audio
-		// myAudio: 'assets/my-audio.wav'
+    // TODO: Add audio
+    // myAudio: 'assets/my-audio.wav'
   }
 };
 
-export const assetKeys = R.reduce()
+export const assetKeys = R.reduce();
 
 class Preload extends Phaser.State {
+  preload() {
+    Object.keys(assets.images).forEach(key => {
+      this.game.load.image(key, assets.images[key]);
+    });
 
-	preload() {
+    Object.keys(assets.spritesheets).forEach(key => {
+      const { src, width, height } = assets.spritesheets[key];
+      this.game.load.spritesheet(key, src, width, height);
+    });
 
-    Object.keys(assets.images)
-      .forEach(key => {
-        this.game.load.image(key, assets.images[key]);
-      });
+    Object.keys(assets.audio).forEach(key => {
+      this.game.load.audio(key, assets.audio[key]);
+    });
 
-    Object.keys(assets.spritesheets)
-      .forEach(key => {
-        const { src, width, height } = assets.spritesheets[key];
-        this.game.load.spritesheet(key, src, width, height);
-      });
+    // TODO: Add audio
+    // this.game.load.audio('myAudio', 'assets/my-audio.wav');
+  }
 
-    Object.keys(assets.audio)
-      .forEach(key => {
-        this.game.load.audio(key, assets.audio[key]);
-      });
-
-		// TODO: Add audio
-		// this.game.load.audio('myAudio', 'assets/my-audio.wav');
-	}
-
-	create() {
-		this.game.state.start('GameOver');
-	}
-
+  create() {
+    this.game.state.start('GameOver');
+  }
 }
 
 export default Preload;
